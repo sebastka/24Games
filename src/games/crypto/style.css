@@ -1,0 +1,72 @@
+/* Cryptograms */
+
+.game.crypto {
+  min-width: min(646px, 100%);
+}
+
+.game.crypto .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.game.crypto .board canvas {
+  display: block;
+  touch-action: manipulation;
+}
+
+.crypto-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.crypto-options fieldset {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 10px;
+  padding: 10px 16px;
+}
+
+.crypto-options .radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crypto-extras {
+  justify-content: center;
+}
+
+/* The on-screen letters, on touch screens only. */
+.letter-pad {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 2px;
+}
+
+.letter-pad .row {
+  display: flex;
+  gap: 3px;
+}
+
+.letter-pad button {
+  min-width: 0;
+  width: min(9vw, 40px);
+  height: 40px;
+  padding: 0;
+  font-weight: bold;
+}
+
+.letter-pad button.clear {
+  width: min(18vw, 70px);
+}
+
+@media (pointer: coarse) {
+  .letter-pad {
+    display: flex;
+  }
+}

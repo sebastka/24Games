@@ -1,0 +1,48 @@
+/* Poker Machine */
+
+.game.pokermat {
+  min-width: min(606px, 100%);
+}
+
+.pokermat .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.pokermat .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: manipulation;
+}
+
+.card-tab .game-to-play {
+  min-width: 164px;
+  padding: 12px 16px;
+}
+
+.card-tab .game-to-play .check {
+  margin-bottom: 12px;
+}
+
+/* "Please Sign In" */
+
+.sign-in .dialog-body {
+  text-align: center;
+  width: 320px;
+  max-width: 100%;
+}
+
+.sign-in .welcome {
+  color: #800000;
+  font:
+    bold 24px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.sign-in input[type='text'] {
+  text-transform: none;
+  width: 260px;
+  max-width: 100%;
+}

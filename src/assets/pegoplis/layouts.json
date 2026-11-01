@@ -1,0 +1,631 @@
+[
+  {
+    "name": "Classic English",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "start": [
+      "0044400",
+      "0044400",
+      "4444444",
+      "4442444",
+      "4444444",
+      "0044400",
+      "0044400"
+    ],
+    "text": "The object of English\nPeg Solitaire is to\ncapture as many pieces\nas you can by\n\"jumping\" over them\ninto empty squares.\nOnly vertical and\nhorizontal jumping is\nallowed.\n\nFor different boards,\nchoose \"Options\" from\nthe \"Game\" menu."
+  },
+  {
+    "name": "Classic French",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "start": [
+      "0044400",
+      "0444440",
+      "4444444",
+      "4442444",
+      "4444444",
+      "0444440",
+      "0044400"
+    ],
+    "text": "The object of classic\nFrench Peg Solitaire is\nto capture as many\npieces as possible. Only\nvertical and horizontal\njumping is allowed.\n\nClassic French Solitaire\nis more dificult than its\nEnglish counterpart.\n\nGood Luck!"
+  },
+  {
+    "name": "Restaraunt",
+    "width": 5,
+    "height": 5,
+    "flags": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "start": [
+      "00004",
+      "00044",
+      "00424",
+      "04444",
+      "44444"
+    ],
+    "text": "This game is equivalent\nto the triangular boards\nseen in some American\nrestaraunts (usually\nplayed with golf tees).\n\nHorizontal, vertical, and\ndiagonal jumps are\nallowed.\n\nThis game is fairly easy\nto get down to one peg."
+  },
+  {
+    "name": "The X",
+    "width": 8,
+    "height": 8,
+    "flags": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "start": [
+      "44400444",
+      "44400444",
+      "44444444",
+      "00424400",
+      "00442400",
+      "44444444",
+      "44400444",
+      "44400444"
+    ],
+    "text": "The object of The X is to\ncapture as many pieces\nas possible. Only\nhorizontal and vertical\njumps are allowed.\n\nGood Luck!"
+  },
+  {
+    "name": "The Diamond",
+    "width": 8,
+    "height": 8,
+    "flags": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "start": [
+      "00024000",
+      "00444400",
+      "04444440",
+      "44444444",
+      "44444444",
+      "04444440",
+      "00444400",
+      "00042000"
+    ],
+    "text": "The object of The\nDiamond is to capture\nas many pieces as\npossible. Only\nhorizontal and vertical\njumps are allowed.\n\nGood Luck!"
+  },
+  {
+    "name": "Checkers",
+    "width": 8,
+    "height": 8,
+    "flags": [
+      true,
+      false,
+      true,
+      true
+    ],
+    "start": [
+      "34343434",
+      "43434343",
+      "34121234",
+      "43212143",
+      "34121234",
+      "43212143",
+      "34343434",
+      "43434343"
+    ],
+    "text": "The object of Checkers\nis to clear as much of\nthe board as possible\nusing only diagonal\njumps.\n\nThis board is much\nmore difficult to clear\nthan English or French\nSolitaire."
+  },
+  {
+    "name": "Checkers II",
+    "width": 8,
+    "height": 8,
+    "flags": [
+      true,
+      false,
+      true,
+      true
+    ],
+    "start": [
+      "34343434",
+      "43434343",
+      "34343434",
+      "43412343",
+      "34321434",
+      "43434343",
+      "34343434",
+      "43434343"
+    ],
+    "text": "The object of Checkers\nII is to capture as many\npieces as possible. Only\ndiagonal jumping is\nallowed.\n\nGood Luck!"
+  },
+  {
+    "name": "The Center",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0044400",
+      "0044400",
+      "4444444",
+      "4441444",
+      "4444444",
+      "0044400",
+      "0044400"
+    ],
+    "goal": [
+      "0022200",
+      "0022200",
+      "2222222",
+      "2223222",
+      "2222222",
+      "0022200",
+      "0022200"
+    ],
+    "text": "The object of \"The\nCenter\" is to completely\nclear the board except\nfor a single piece in the\ncenter.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Wall",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0034300",
+      "3334333",
+      "3442443",
+      "3334333",
+      "0034300",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0032300",
+      "3332333",
+      "3222223",
+      "3332333",
+      "0032300",
+      "0033300"
+    ],
+    "text": "The object of \"The\nWall\" is to clear the\ninner part of the board,\nleaving a wall of pegs\naround the perimeter.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Extremes",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0034300",
+      "3344433",
+      "3441443",
+      "3344433",
+      "0034300",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0032300",
+      "3322233",
+      "3223223",
+      "3322233",
+      "0032300",
+      "0033300"
+    ],
+    "text": "The object of \"The\nExtremes\" is to create\nthe pattern shown\nbelow.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Core",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0044400",
+      "0044400",
+      "4433344",
+      "4432344",
+      "4433344",
+      "0044400",
+      "0044400"
+    ],
+    "goal": [
+      "0022200",
+      "0022200",
+      "2233322",
+      "2232322",
+      "2233322",
+      "0022200",
+      "0022200"
+    ],
+    "text": "The object of \"The\nCore\" is to leave a\nsquare of pegs in the\ncenter as shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Spiral",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0034400",
+      "0034400",
+      "4443433",
+      "4432344",
+      "3343444",
+      "0044300",
+      "0044300"
+    ],
+    "goal": [
+      "0032200",
+      "0032200",
+      "2223233",
+      "2232322",
+      "3323222",
+      "0022300",
+      "0022300"
+    ],
+    "text": "The object of \"The\nSpiral\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Tree",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0044400",
+      "0034300",
+      "4341434",
+      "3443443",
+      "3443443",
+      "0043400",
+      "0033300"
+    ],
+    "goal": [
+      "0022200",
+      "0032300",
+      "2323232",
+      "3223223",
+      "3223223",
+      "0023200",
+      "0033300"
+    ],
+    "text": "The object of \"The\nTree\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Four",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033400",
+      "0044300",
+      "3434344",
+      "3442344",
+      "4333333",
+      "0044300",
+      "0044300"
+    ],
+    "goal": [
+      "0033200",
+      "0022300",
+      "3232322",
+      "3222322",
+      "2333333",
+      "0022300",
+      "0022300"
+    ],
+    "text": "The object of \"The\nFour\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Cross",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0044400",
+      "3443443",
+      "3431343",
+      "3443443",
+      "0044400",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0022200",
+      "3223223",
+      "3233323",
+      "3223223",
+      "0022200",
+      "0033300"
+    ],
+    "text": "The object of \"The\nCross\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Gate",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0044400",
+      "0044400",
+      "4443444",
+      "4434344",
+      "4342434",
+      "0034300",
+      "0034300"
+    ],
+    "goal": [
+      "0022200",
+      "0022200",
+      "2223222",
+      "2232322",
+      "2322232",
+      "0032300",
+      "0032300"
+    ],
+    "text": "The object of \"The\nGate\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The World",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0344430",
+      "3444443",
+      "3331333",
+      "3444443",
+      "0344430",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0322230",
+      "3222223",
+      "3333333",
+      "3222223",
+      "0322230",
+      "0033300"
+    ],
+    "text": "The object of \"The\nWorld\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Circle",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0344430",
+      "3444443",
+      "3441443",
+      "3444443",
+      "0344430",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0322230",
+      "3222223",
+      "3223223",
+      "3222223",
+      "0322230",
+      "0033300"
+    ],
+    "text": "The object of \"The\nCircle\" is to create the\npattern shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Corsair",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0034400",
+      "0444440",
+      "4444444",
+      "4444444",
+      "4444444",
+      "0444440",
+      "0044200"
+    ],
+    "goal": [
+      "0031100",
+      "0111110",
+      "1111111",
+      "1111111",
+      "1111111",
+      "0111110",
+      "0011100"
+    ],
+    "text": "The object of \"The\nCorsair\" is to clear the\nboard, leaving one\npiece in the position\nshown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Apostles",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0034300",
+      "0344430",
+      "3444443",
+      "4441444",
+      "3444443",
+      "0344430",
+      "0034300"
+    ],
+    "goal": [
+      "0032300",
+      "0322230",
+      "3222223",
+      "2223222",
+      "3222223",
+      "0322230",
+      "0032300"
+    ],
+    "text": "The object of \"The\nApostles\" is to create\nthe pattern shown\nbelow.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Octagon",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0024200",
+      "0444440",
+      "2444442",
+      "4443444",
+      "2444442",
+      "0444440",
+      "0024200"
+    ],
+    "goal": [
+      "0011100",
+      "0111110",
+      "1111111",
+      "1113111",
+      "1111111",
+      "0111110",
+      "0011100"
+    ],
+    "text": "The object of \"The\nOctagon\" is to\ncompletely clear the\nboard except for a\nsingle peg in the center.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Letter E",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0033300",
+      "0434440",
+      "4434444",
+      "4431344",
+      "4434444",
+      "0434440",
+      "0033300"
+    ],
+    "goal": [
+      "0033300",
+      "0232220",
+      "2232222",
+      "2233322",
+      "2232222",
+      "0232220",
+      "0033300"
+    ],
+    "text": "The object of \"The\nLetter E\" is to draw an\n'E' as shown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  },
+  {
+    "name": "The Star",
+    "width": 7,
+    "height": 7,
+    "flags": [
+      true,
+      true,
+      false,
+      false
+    ],
+    "start": [
+      "0034300",
+      "0443440",
+      "3443443",
+      "4332334",
+      "3443443",
+      "0443440",
+      "0034300"
+    ],
+    "goal": [
+      "0032300",
+      "0223220",
+      "3223223",
+      "2332332",
+      "3223223",
+      "0223220",
+      "0032300"
+    ],
+    "text": "The object of \"The Star\"\nis to create the pattern\nshown below.\n\nOnly vertical and\nhorizontal jumps are\nallowed."
+  }
+]

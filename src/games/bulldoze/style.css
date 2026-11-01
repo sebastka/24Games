@@ -1,0 +1,23 @@
+/* Bulldozer */
+
+.playfield {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.game.bulldozer {
+  min-width: min(646px, 100%);
+}

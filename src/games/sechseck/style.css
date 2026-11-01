@@ -1,0 +1,45 @@
+/* Sechseck */
+
+.game.sechseck {
+  min-width: min(518px, 100%);
+}
+
+.sechseck .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.sechseck .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.board-size,
+.animation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.board-size fieldset,
+.animation fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 100px;
+}
+
+.board-size .radio,
+.animation .radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.animation .zones {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

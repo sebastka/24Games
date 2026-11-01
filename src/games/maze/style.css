@@ -1,0 +1,68 @@
+/* MazeRace */
+
+.game.maze {
+  min-width: min(606px, 100%);
+}
+
+.maze .framed-dialog .dialog-body {
+  padding: 0;
+}
+
+/* The OK button is inside the frame, where the original has it. */
+.maze .framed-dialog .dialog-buttons {
+  display: none;
+}
+
+.maze .frame {
+  position: relative;
+  background: #f4f4f4;
+  font-weight: bold;
+}
+
+.maze .frame canvas {
+  position: absolute;
+  inset: 0;
+  image-rendering: pixelated;
+}
+
+.maze .frame span,
+.maze .frame button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.maze .frame button {
+  min-width: 0;
+  justify-content: center;
+  font-weight: normal;
+}
+
+.maze-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.maze-options fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.maze-options .players {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.maze-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.maze-keys .player-keys[disabled] {
+  opacity: 0.6;
+}

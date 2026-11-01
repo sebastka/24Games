@@ -1,0 +1,122 @@
+/* Shared CZGAME32 dialogs: outcome, Hall of Fame, Enter your high score. */
+
+.cz-outcome .outcome-body {
+  display: flex;
+  align-items: stretch;
+}
+
+.cz-outcome .outcome-body:not(.win) {
+  flex-direction: row-reverse;
+}
+
+.cz-outcome .outcome-body:not(.win) .outcome-picture {
+  border-left: none;
+  border-right: 1px solid var(--shadow);
+  box-shadow: 1px 0 var(--light);
+  padding: 0 1px 0 0;
+}
+
+.cz-outcome .outcome-text {
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 20px;
+  padding-top: 16px;
+  text-align: center;
+  font:
+    bold 13px Arial,
+    Helvetica,
+    sans-serif;
+  color: #000080;
+}
+
+.cz-outcome .outcome-text .heading {
+  font-size: 24px;
+  color: #800000;
+}
+
+.cz-outcome .outcome-picture {
+  width: 121px;
+  height: 200px;
+  border-left: 1px solid var(--shadow);
+  box-shadow: inset 1px 0 var(--light);
+  padding-left: 1px;
+}
+
+.cz-outcome .outcome-picture img,
+.cz-hall-of-fame img,
+.cz-high-score img {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.cz-hall-of-fame .flag {
+  position: relative;
+  width: 362px;
+  max-width: 100%;
+  height: 312px;
+  overflow: hidden;
+}
+
+.cz-hall-of-fame .flag img {
+  position: absolute;
+  left: 4px;
+  top: 10px;
+}
+
+.cz-hall-of-fame .place {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+  font:
+    13px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.cz-hall-of-fame .place span {
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  background: var(--light);
+  border: 1px solid var(--dark);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.cz-hall-of-fame .rank {
+  width: 18px;
+}
+
+.cz-hall-of-fame .name {
+  width: 160px;
+}
+
+.cz-hall-of-fame .score {
+  width: 61px;
+}
+
+.cz-high-score .ribbons {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: center;
+}
+
+.cz-high-score .ribbons > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.cz-high-score .heading {
+  font:
+    bold 22px Arial,
+    Helvetica,
+    sans-serif;
+  color: #800000;
+}
+
+.cz-high-score input.name {
+  text-transform: none;
+}

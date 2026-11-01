@@ -1,0 +1,98 @@
+// Renovate configuration: https://docs.renovatebot.com/configuration-options/
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    // Keep GitHub Actions pinned by commit SHA, with the version as comment.
+    "helpers:pinGitHubActionDigests",
+  ],
+
+  timezone: "Europe/Paris",
+  // Nightly, for updates and for merging them.
+  schedule: ["* 0-5 * * *"],
+  automergeSchedule: ["* 0-5 * * *"],
+  prHourlyLimit: 0,
+  prConcurrentLimit: 10,
+
+  // Everything but majors merges itself once the required checks pass
+  // (GitHub auto-merge, squash, so commits stay signed and linear).
+  automerge: true,
+  platformAutomerge: true,
+  automergeStrategy: "squash",
+  // Let fresh releases settle before they are proposed (yanks, takedowns, compromised packages).
+  minimumReleaseAge: "3 days",
+
+  semanticCommits: "enabled",
+  lockFileMaintenance: {
+    enabled: true,
+    schedule: ["* 0-5 * * *"],
+  },
+  vulnerabilityAlerts: {
+    labels: ["security"],
+    // Security fixes are proposed at once, not at night.
+    schedule: ["at any time"],
+    minimumReleaseAge: null,
+  },
+
+  packageRules: [
+    {
+      description: "Majors are reviewed by hand.",
+      matchUpdateTypes: ["major"],
+      automerge: false,
+      labels: ["major"],
+    },
+    {
+      description: "npm 0.x minors are breaking by semver convention: treat them as majors.",
+      matchManagers: ["npm"],
+      matchCurrentVersion: "<1.0.0",
+      matchUpdateTypes: ["minor"],
+      automerge: false,
+      labels: ["major"],
+    },
+    {
+      description: "Raise package.json ranges, not only the lock file.",
+      matchManagers: ["npm"],
+      rangeStrategy: "bump",
+    },
+    {
+      description: "typescript is an alias of @typescript/typescript6 (for typescript-eslint) and @typescript/native of typescript 7: update them by hand, together with typescript-eslint.",
+      matchManagers: ["npm"],
+      matchDepNames: ["typescript", "@typescript/native"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+    },
+    {
+      groupName: "npm dependencies (non-major)",
+      matchManagers: ["npm"],
+      matchUpdateTypes: ["minor", "patch"],
+      matchCurrentVersion: ">=1.0.0",
+    },
+    {
+      description: "The Node version of .nvmrc follows the DHI build image's major.",
+      matchManagers: ["nvm"],
+      matchUpdateTypes: ["major"],
+      automerge: false,
+    },
+    {
+      groupName: "GitHub Actions",
+      matchManagers: ["github-actions"],
+      matchDepTypes: ["action"],
+      matchUpdateTypes: ["minor", "patch", "digest", "pin", "pinDigest"],
+    },
+    {
+      groupName: "Container images",
+      matchDatasources: ["docker"],
+      matchUpdateTypes: ["minor", "patch", "digest", "pin", "pinDigest"],
+    },
+  ],
+
+  customManagers: [
+    {
+      description: "yamllint version run by CI through pipx.",
+      customType: "regex",
+      managerFilePatterns: ["/^\\.github/workflows/.+\\.yaml$/"],
+      matchStrings: ["pipx run (?<depName>yamllint)==(?<currentValue>[\\d.]+)"],
+      datasourceTemplate: "pypi",
+    },
+  ],
+}

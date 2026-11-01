@@ -1,0 +1,5 @@
+/* Reversi Plus */
+
+.game.reversi {
+  min-width: min(566px, 100%);
+}

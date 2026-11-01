@@ -1,0 +1,22 @@
+/* Siege */
+
+.game.siege {
+  min-width: min(626px, 100%);
+}
+
+.siege .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.siege .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.card-tab .foundations {
+  min-width: 220px;
+  padding: 8px 16px;
+}

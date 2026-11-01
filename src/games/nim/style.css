@@ -1,0 +1,52 @@
+/* Nim */
+
+.game.nim {
+  min-width: min(386px, 100%);
+}
+
+.nim .playfield {
+  display: flex;
+  justify-content: center;
+}
+
+.nim .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.nim .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.nim-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.nim-options .pile-sizes {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 16px;
+  align-content: start;
+}
+
+.nim-options .pile-sizes label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nim-lists {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nim-lists select {
+  min-width: 170px;
+}

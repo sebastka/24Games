@@ -1,0 +1,13 @@
+.*
+!.github
+!.gitignore
+!.envrc
+!.env.example
+!.nvmrc
+!.prettierrc.json
+!.prettierignore
+!.dockerignore
+!.yamllint.yaml
+node_modules/
+dist/
+build/

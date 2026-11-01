@@ -1,0 +1,218 @@
+[
+  {
+    "id": "bbchess",
+    "title": "Black Box Chess",
+    "category": "Puzzle",
+    "blurb": "Black box chess is a combination chess puzzle and game of deductive logic.  Try to guess the secret chess pieces!",
+    "rules": [
+      "The object of Black Box Chess is to guess which chess pieces belong in the squares on the chessboard marked with a '?'.\n\nTo help guess, you can click on unmarked board spaces. The number showing after clicking on an empty space is the number of ways that the square is threatened by the opposing pieces.  Drag the pieces to the '?' spaces when you think you know what one is.  Click the 'Guess' button when you have all pieces placed correctly."
+    ]
+  },
+  {
+    "id": "bulldoze",
+    "title": "Bulldozer",
+    "category": "Puzzle",
+    "blurb": "Bulldozer is an addictive puzzle game where you must push rocks onto targets.  There are 60 levels to solve, so you have a bit of work to solve them all.",
+    "rules": [
+      "The object of bulldozer is to push all of the rocks onto the targets. You move the bulldozer using the keyboard arrow keys.\n\nRemember that a bulldozer can only push -it cannot pull rocks.  If you get stuck, you will have to restart the level!"
+    ]
+  },
+  {
+    "id": "match",
+    "title": "CardMatch",
+    "category": "Puzzle",
+    "blurb": "CardMatch is a fun memory game that can be played by young children and adults.  There are three skill levels; the highest skill level is deceptively difficult.",
+    "rules": [
+      "To play CardMatch, simply click on the back of one of the cards to flip it over.  Try to match the card to its mate by flipping over another card.  The game is over once all the cards have been paired.\n\nFind your pairs fast! You are timed each time you play.  Try to beat your best time."
+    ]
+  },
+  {
+    "id": "connect",
+    "title": "Checker Connector",
+    "category": "Board/Strategy",
+    "blurb": "Checker Connector is a classic game of checker-dropping.  Try to get four in a row before your opponent.",
+    "rules": [
+      "To play Checker Connector, take turns 'dropping' your pieces in each column.  The first player to to get four checkers in a row vertically, horizontally, or diagonally wins."
+    ]
+  },
+  {
+    "id": "cheesy",
+    "title": "Cheesy Pursuit",
+    "category": "Arcade",
+    "blurb": "You are a mouse.  You must eat all of the cheese while dodging giant cats who are determined to get you!",
+    "rules": [
+      "To play Cheesy Pursuit, move the mouse to eat all the cheddar slices.  Be quick! If a cat get's you, you lose a mouse.  You will recieve a new life every time you score 10,000 points.\n\nThe object is to get the highest possible score with three mice."
+    ]
+  },
+  {
+    "id": "meltdown",
+    "title": "Core Meltdown",
+    "category": "Board/Strategy",
+    "blurb": "Core meltdown is a game where the initial setup is the key to success.  Try to eliminate your opponent from the board using 'exploding' playing pieces!",
+    "rules": [
+      "The object is to take over the entire board with your playing pieces.\n\nTo place a playing piece, click on an empty board square or on a square that you already have a playing piece. If you place a piece on a square in which you already have a playing piece, the piece will \"grow\". Once the piece is too big, the piece will \"explode\" into the adjacent squares. If your pieces move into squares owned by your opponent, you will take them over."
+    ]
+  },
+  {
+    "id": "crypto",
+    "title": "Cryptograms",
+    "category": "Puzzle",
+    "blurb": "Become a code-breaker as you try to guess the secret phrase chosen by the computer.",
+    "rules": [
+      "A cryptogram is a phrase written in a secret alphabet code.  The object of Cryptograms is to guess the cryptic phrase!\n\nClick on a target letter box and type a letter guess.  Continue this process until you have solved the phrase.  Letter substitutions remain constant throughout any one phrase.  Try a new phrase, decipher a new code!"
+    ]
+  },
+  {
+    "id": "engulf",
+    "title": "Engulf",
+    "category": "Board/Strategy",
+    "blurb": "The object of Engulf is to capture more pieces than your opponent by jumping and capturing.",
+    "rules": [
+      "To play Engulf, drag one of your playing pieces (originally in the upper-left and lower-right corners) to a destination one or two squares away.\n\nMoves of one space copy.  Moves of two spaces jump.  Moving next to an opposing piece captures it."
+    ]
+  },
+  {
+    "id": "maze",
+    "title": "MazeRace",
+    "category": "Arcade",
+    "blurb": "A great arcade playable by one player (but really great with two), try to beat the other mouse to the cheese at the end of the maze.",
+    "rules": [
+      "Hector (white mouse) and Nestor (brown mouse) Cheesman are mice racing through a maze to reach the cheese on the bottom row.\n\nThe black dots in the maze are opponent throwers, and the white dots are player throwers.  Throwers will transport you or your opponent to a random place in the maze."
+    ]
+  },
+  {
+    "id": "nim",
+    "title": "Nim",
+    "category": "Board/Strategy",
+    "blurb": "A classic board game of piece-stealing.  The object is to force your opponent to take the last piece.",
+    "rules": [
+      "To play, take turns with the computer removing pieces from the board.  During your turn, remove any number of pieces from a single row on the board.  The player taking the last piece on the board wins the game."
+    ]
+  },
+  {
+    "id": "pegoplis",
+    "title": "Pegopolis",
+    "category": "Puzzle",
+    "blurb": "A classic solitaire game of peg-jumping.  Includes special pattern-matching versions that are very challenging.",
+    "rules": [
+      "To play Pegopolis, drag a playing piece from an occupied square to an unoccupied square, jumping over a piece to capture. The instructions in the upper-right corner specify if vertical/horizontal or diagonal jumps are allowed.\n\nIf there is a score in the lower-right corner of the screen, the object is to reduce the board to as few pieces as possible.  If there is an example board in the lower-right corner of the screen, the object is to create a specific pattern on the board."
+    ]
+  },
+  {
+    "id": "pokermat",
+    "title": "Poker Machine",
+    "category": "Gambling",
+    "blurb": "A simulation of a Vegas Poker machine.  This version includes three game variations and payoff lines for realism.",
+    "rules": [
+      "Poker Machine is a simulation of a Las Vegas-style poker machine.  The payoffs for the various hands are shown at the top of the screen.  Click the columns to place your bet, and press the 'Deal' button to start dealing your cards.\n\nYou are allowed one redeal after choosing which cards to discard.  Cards are discarded by clicking on the card face to flip the card over.  Click on the 'Redeal' to get your new cards and to finish the round."
+    ]
+  },
+  {
+    "id": "pokergrd",
+    "title": "Poker Patience",
+    "category": "Card/Solitaire",
+    "blurb": "An addictive solitaire card game where you try to build poker hands vertically and horizontally.",
+    "rules": [
+      "To play Poker Patience, drag cards from the available cards in the piles at the top of the window to the empty cells in the grid on the bottom of the window.\n\nThe object of the game is to create the best poker hands possible both horizontally AND vertically."
+    ]
+  },
+  {
+    "id": "pushpull",
+    "title": "Push-Pull",
+    "category": "Board/Strategy",
+    "blurb": "A simple game that can be very difficult to beat at higher levels.  The object is to capture as many of your own pieces as you can.",
+    "rules": [
+      "If you are playing first, click the mouse in an empty square to place the marker.  Player and computer move in turn, moving the marker one square from its previous position.\n\nThe object of the game is to capture more pieces from the horizontal rows than the computer can capture from the vertical rows."
+    ]
+  },
+  {
+    "id": "quinto",
+    "title": "Quinto",
+    "category": "Puzzle",
+    "blurb": "An extremely-difficult puzzle game.  Try to switch all of the pieces on the board.",
+    "rules": [
+      "The object of Quinto is to change all of the pieces on the board from one type to another using as few moves as possible.  To flip a piece, click it.  The piece will change, as will the pieces directly above, below, left, and right of it."
+    ]
+  },
+  {
+    "id": "reversi",
+    "title": "Reversi Plus",
+    "category": "Board/Strategy",
+    "blurb": "A classic game.  Try to gain more pieces than your opponent.  You can capture pieces by 'surrounding' them.",
+    "rules": [
+      "The object of Reversi Plus is to capture more of the computer's pieces than the computer can catch of yours.\n\nTo capture a computer's piece, click on an empty square in which you 'surround' one or more of the computer's pieces with your own (horizontally, vertically, or diagonally).  The cursor will change to a crosshair when it is over a square that can be played.  You can ONLY make moves in squares that capture opposing pieces."
+    ]
+  },
+  {
+    "id": "sechseck",
+    "title": "Sechseck",
+    "category": "Arcade",
+    "blurb": "A quick-playing arcade game.  Try to place colored pieces for the best score.",
+    "rules": [
+      "Each piece in Sechseck have two different traits; color and shape.  Drag and drop the pieces onto the board.  Once a piece is dropped, you cannot move it.  Try to place similar pieces next to each other.  But be quick!  If you don't place the piece fast enough, a skull will appear in one of the tiles on the board (which means you can't place a playing piece there).Your score increases with the number of traits you match each time you place a piece. The object is to score as high as you can."
+    ]
+  },
+  {
+    "id": "siege",
+    "title": "Siege",
+    "category": "Card/Solitaire",
+    "blurb": "An addictive solitaire variant.  Try to build a column of cards from aces to kings.",
+    "rules": [
+      "The object of Siege is to play the center column from aces to kings in suit.  In the outer 'wings' of cards, it is allowed to drag cards of lower rank on to of cards of higher rank regardless of suit.\n\nOnce cards are placed in the center column, they cannot be removed."
+    ]
+  },
+  {
+    "id": "stackblz",
+    "title": "StackBlitz",
+    "category": "Arcade",
+    "blurb": "A classic arcade game.  Try to build chains of like-colored pieces on the bottom of the screen.  This game speeds up quickly, so be careful.",
+    "rules": [
+      "In StackBlitz, you have stacks of three pieces dropping down in a column.  As the stacks are dropping, you can rearrange them.  The pieces will not change orientation, just position in the stack.  Once the stack reaches the bottom of the column, it can not be moved.\n\nTry to eliminate the pieces by matching at least three pieces horizontally, vertically, or diagonally."
+    ]
+  },
+  {
+    "id": "thinktnk",
+    "title": "Think Tank",
+    "category": "Arcade",
+    "blurb": "You are hopelessly outnumbered.  You have a tank with a gun.  You must avoid or destroy all the enemies for the best scores.",
+    "rules": [
+      "To complete a level in Think Tank, move the tank to collect all of the green pellets or eliminate all enemy tanks.  Be quick! If an enemy tank get's you, you lose a tank.  You will receive a chance to get a new tank every fifth level.\n\nThe object is to get the highest possible score."
+    ]
+  },
+  {
+    "id": "vcross",
+    "title": "Vanishing Cross",
+    "category": "Card/Solitaire",
+    "blurb": "A difficult solitaire variant.  You need to build all the suits up, but you can start at any card.",
+    "rules": [
+      "The object of Vanishing Cross is to play all of the cards from the deck (face down on the right) to the foundations on the four corners of the cross.  Cards are placed in ascending order in the corners, and the cards 'wrap around', i.e. on a king, you would place an ace, then a deuce.\n\nThe cross on the screen is used as a temporary holding area for cards.  Cards can be placed here in descending order without regard to suit."
+    ]
+  },
+  {
+    "id": "voracity",
+    "title": "Voracity",
+    "category": "Board/Strategy",
+    "blurb": "A very simple and addictive game of greed.  Try to capture as many numbers as possible without boxing yourself in.",
+    "rules": [
+      "To play, click on any number tile surrounding the target.  The target will move the same number of tiles in the same direction of the chosen number.  You will receive a point for every tile eliminated.\n\nThe object of the game is to eliminate as many tiles as you can until you can no longer move the target."
+    ]
+  },
+  {
+    "id": "wari",
+    "title": "Wari",
+    "category": "Board/Strategy",
+    "blurb": "A 7000-year old game from Africa.  Unlike most other ancient games, this one has a real element of strategy.  Try to get more pieces than your opponent.",
+    "rules": [
+      "To play Wari, click on one of the six pits on the bottom of the window.  The pieces will be removed from this pit and distributed around the board counterclockwise.  If the last piece you play lands in the large pit on the right, you get an extra turn.  If the last piece you play lands in an empty pit on your side, you receive all of the pieces on the opposite side.\n\nWhen a player cannot move, the game is over.  The player who has the most pieces is the winner."
+    ]
+  },
+  {
+    "id": "winding",
+    "title": "Winding Standoff",
+    "category": "Board/Strategy",
+    "blurb": "A difficult game of give-and-take.  Slide pieces back and forth on a winding board.  The first player who cannot move is the loser!",
+    "rules": [
+      "Winding standoff is played in two phases.  In the first phase, you must place your pieces on the board.  You must place two pieces in each even-colored square.  The computer will place two pieces in each odd-colored square.\n\nOnce all pieces are played, take turns moving your pieces on the board.  You cannot jump over any pieces (yours or the computer's.  The first player who cannot move is the loser."
+    ]
+  }
+]

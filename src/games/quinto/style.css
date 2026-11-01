@@ -1,0 +1,45 @@
+/* Quinto */
+
+.game.quinto {
+  min-width: min(518px, 100%);
+}
+
+.game.quinto .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.game.quinto .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: manipulation;
+}
+
+.quinto-options {
+  display: flex;
+  justify-content: center;
+}
+
+.quinto-options fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 24px 16px;
+}
+
+.quinto-options .size {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-weight: bold;
+}
+
+.quinto-sets {
+  justify-content: center;
+}
+
+.quinto-sets .preview {
+  margin: 12px 24px;
+}

@@ -1,0 +1,5 @@
+/* Checker Connector */
+
+.game.connect {
+  min-width: min(286px, 100%);
+}

@@ -1,0 +1,34 @@
+/* Engulf */
+
+.game.engulf {
+  min-width: min(518px, 100%);
+}
+
+.layout-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.layout-tab p {
+  margin: 4px 0 0;
+  font-weight: bold;
+}
+
+.layout-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 200px;
+  margin: 4px 0;
+}
+
+.layout-choice .check {
+  margin: 0;
+}
+
+.dragging .zones {
+  margin-top: 16px;
+}

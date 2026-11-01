@@ -1,0 +1,62 @@
+/* Cheesy Pursuit */
+
+.game.cheesy {
+  min-width: min(374px, 100%);
+}
+
+.cheesy .framed-dialog .dialog-body {
+  padding: 0;
+}
+
+/* The OK button is inside the frame, where the original has it. */
+.cheesy .framed-dialog .dialog-buttons {
+  display: none;
+}
+
+.cheesy .frame {
+  position: relative;
+  background: #f4f4f4;
+  font-weight: bold;
+}
+
+.cheesy .frame canvas {
+  position: absolute;
+  inset: 0;
+  image-rendering: pixelated;
+}
+
+.cheesy .frame span,
+.cheesy .frame button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.cheesy .frame button {
+  min-width: 0;
+  justify-content: center;
+  font-weight: normal;
+}
+
+.cheesy .frame .gotcha {
+  justify-content: center;
+  font:
+    italic bold 24px Arial,
+    Helvetica,
+    sans-serif;
+  color: #800000;
+}
+
+.cheesy-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cheesy-options .board-size {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 12px;
+}

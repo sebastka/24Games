@@ -1,0 +1,10 @@
+/* Core Meltdown */
+
+.game.meltdown {
+  min-width: min(516px, 100%);
+}
+
+.board-options .size select {
+  width: auto;
+  margin-left: 8px;
+}

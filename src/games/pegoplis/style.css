@@ -1,0 +1,33 @@
+/* Pegopolis */
+
+.game.pegoplis {
+  min-width: min(518px, 100%);
+}
+
+.game.pegoplis .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.game.pegoplis .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.pegoplis-sets {
+  justify-content: center;
+}
+
+.pegoplis-sets .preview {
+  margin: 12px 24px;
+}
+
+/* The InfoBox icon (the shell has warning and error ones only). */
+.game.pegoplis .message.info::before {
+  content: 'i';
+  background: #0000ff;
+  color: var(--light);
+  font-style: italic;
+}

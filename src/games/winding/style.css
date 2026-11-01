@@ -1,0 +1,25 @@
+/* Winding Standoff */
+
+.game.winding {
+  min-width: min(526px, 100%);
+}
+
+.winding .playfield,
+.winding .board {
+  display: flex;
+  justify-content: center;
+}
+
+.winding .board {
+  width: 100%;
+}
+
+.winding .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.mouse-dragging .check:nth-of-type(3) {
+  margin-top: 12px;
+}

@@ -1,0 +1,83 @@
+---
+name: CI
+
+'on':
+  push:
+    branches: [master]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Typecheck, lint, format, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - name: The committed assets are what the extraction produces
+        run: |
+          npm run assets
+          git diff --exit-code --stat -- src/assets
+          test -z "$(git status --porcelain -- src/assets)"
+      - run: npm run build
+
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: pipx run yamllint==1.38.0 --strict .
+
+  docker:
+    runs-on: ubuntu-latest
+    # Pulling Docker Hardened Images needs credentials, which forks do not get.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: dhi.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: false
+          load: true
+          tags: 24games:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image (read-only, no capability)
+        run: |
+          docker run -d --name web -p 8080:8080 --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges 24games:ci
+          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8080/ | grep -q '<div id="root">'
+          curl -fsSI http://127.0.0.1:8080/ | grep -qi "content-security-policy: default-src 'self'"
+          bundle=$(curl -fsS http://127.0.0.1:8080/ | grep -o '/assets/index-[^"]*\.js' | head -1)
+          curl -fsS "http://127.0.0.1:8080$bundle" | grep -q 'Bulldozer'
+      - name: Container logs
+        if: always()
+        run: docker logs web || true

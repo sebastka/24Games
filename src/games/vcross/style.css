@@ -1,0 +1,22 @@
+/* Vanishing Cross */
+
+.game.vcross {
+  min-width: min(380px, 100%);
+}
+
+.vcross .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.vcross .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.card-tab .foundations {
+  min-width: 220px;
+  padding: 8px 16px;
+}

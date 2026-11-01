@@ -1,0 +1,42 @@
+/* CardMatch */
+
+.game.match .playfield {
+  display: flex;
+  justify-content: center;
+}
+
+.game.match .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.game.match .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: manipulation;
+}
+
+.game.match {
+  min-width: min(446px, 100%);
+}
+
+.match-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.match-options fieldset {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 14px;
+  padding: 10px 16px;
+}
+
+.match-options .radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

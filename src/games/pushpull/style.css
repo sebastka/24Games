@@ -1,0 +1,21 @@
+/* Push-Pull */
+
+.game.pushpull {
+  min-width: min(518px, 100%);
+}
+
+.pushpull .playfield,
+.pushpull .board {
+  display: flex;
+  justify-content: center;
+}
+
+.pushpull .board {
+  width: 100%;
+}
+
+.pushpull .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
