@@ -1,17 +1,16 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 
 /** Sound events, with the original's defaults (winding.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Winding Standoff Start': '',
-  'Winding Standoff Exit': '',
+export const SOUND_EVENTS = soundEvents('Winding Standoff', {
   'Piece Drag From Store': 'click_5',
   'Enemy Move From Store': 'instr_9',
   'Piece Drag': 'click_4',
   'Enemy Piece Move': 'instr_9',
   Victory: 'orch_3',
   Defeat: 'instr_2',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

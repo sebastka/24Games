@@ -3,6 +3,7 @@ import holderFoundation from '../../assets/siege/holder-foundation.png';
 import holderLeft from '../../assets/siege/holder-left.png';
 import holderRight from '../../assets/siege/holder-right.png';
 import { useFitScale, useImages } from '../../shell/canvas.ts';
+import { useBackground } from '../../shell/canvas.ts';
 import { CARD_H, CARD_W, cardName } from '../../shell/cards/cards.ts';
 import {
   drawDragFeedback,
@@ -13,7 +14,6 @@ import {
   type Zone,
 } from '../../shell/cards/drag.ts';
 import { drawCard, useCardArt, type CardLook } from '../../shell/cards/draw.ts';
-import { useBackground } from '../../shell/cards/table.ts';
 import { beep } from '../../shell/sound.ts';
 import { canMove, isFoundation, rowOf, top, WINGS, type State } from './logic.ts';
 

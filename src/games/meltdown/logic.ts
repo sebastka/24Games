@@ -1,6 +1,7 @@
 // Rules of Core Meltdown and its computer player, as the original meltdown.exe implements them
 // (see docs/games/meltdown.md for the functions this follows). Pure: every action returns a new
 // board.
+import type { Rand } from '../../shell/random.ts';
 
 export const PLAYER = 0;
 export const COMPUTER = 1;
@@ -11,9 +12,6 @@ export type Side = typeof PLAYER | typeof COMPUTER;
  * player's with that many units, 11-20 the computer's with (value − 10) units.
  */
 export type Board = readonly number[];
-
-/** MSVC's `rand()`: an integer in 0…32767. */
-export type Rand = () => number;
 
 export const sizeOf = (board: ArrayLike<number>): number => Math.round(Math.sqrt(board.length));
 export const units = (v: number): number => (v > 10 ? v - 10 : v);
@@ -99,9 +97,8 @@ function react(b: number[], n: number, i: number, events: Event[]): void {
 }
 
 /**
- * The player clicks square `i` (`FUN_00402180`): one more unit there (whoever owns it: the
- * original lets the player click the computer's first square, see `clickable`), then the chain
- * reaction.
+ * The player clicks square `i` (`FUN_00402180`, one of the `clickable` squares): one more unit
+ * there, then the chain reaction.
  */
 export function playerPlace(board: Board, i: number): { board: Board; events: Event[] } {
   const b = [...board];

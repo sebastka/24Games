@@ -2,43 +2,54 @@ import { useState } from 'react';
 import { BACKGROUNDS } from './backgrounds.ts';
 import { ListBox } from './Dialog.tsx';
 import { playSound, SOUND_NAMES } from './sound.ts';
+import type { SoundSettings } from './soundEvents.ts';
 
-export interface Extras {
+export interface Extras extends SoundSettings {
   /** Index in BACKGROUNDS. */
   background: number;
-  soundEnabled: boolean;
-  /** Sound name (a WAV of the CD, without extension) per event; '' for none. */
-  sounds: Record<string, string>;
 }
 
-/** Options › Extras, common to all games: window background and sounds. */
-export function ExtrasTab({ value, onChange }: { value: Extras; onChange: (value: Extras) => void }) {
+/**
+ * Options › Extras, common to all games (CZGAME32.DLL): the window background and the sounds.
+ * `background` false leaves only the sounds, for the games whose play field fills the window
+ * (Checker Connector, Cryptograms, MazeRace).
+ */
+export function ExtrasTab<T extends SoundSettings>(props: {
+  value: T;
+  onChange: (value: T) => void;
+  /** Offer the background list (true by default; the value must then have `background`). */
+  background?: boolean;
+}) {
+  const { value, onChange } = props;
   const events = Object.keys(value.sounds);
   const [event, setEvent] = useState(0);
   const eventName = events[event] ?? '';
   const sound = value.sounds[eventName] ?? '';
+  const withBackground = props.background ?? true;
 
   return (
-    <div className="extras">
+    <div className={withBackground ? 'extras' : 'extras sounds-only'}>
+      {withBackground && 'background' in value && typeof value.background === 'number' && (
+        <fieldset>
+          <legend>Screen Background</legend>
+          <ListBox
+            label="Screen background"
+            items={BACKGROUNDS.map((b) => b.name)}
+            selected={value.background}
+            onSelect={(background) => onChange({ ...value, background })}
+            rows={7}
+          />
+        </fieldset>
+      )}
       <fieldset>
-        <legend>Background</legend>
-        <ListBox
-          label="Background"
-          items={BACKGROUNDS.map((b) => b.name)}
-          selected={value.background}
-          onSelect={(background) => onChange({ ...value, background })}
-          rows={7}
-        />
-      </fieldset>
-      <fieldset>
-        <legend>Sounds</legend>
+        <legend>Game Sounds</legend>
         <label className="check">
           <input
             type="checkbox"
             checked={value.soundEnabled}
             onChange={(e) => onChange({ ...value, soundEnabled: e.target.checked })}
           />
-          Sound enabled
+          Game Sounds Enabled
         </label>
         <ListBox label="Sound events" items={events} selected={event} onSelect={setEvent} rows={4} />
         <div className="sound-choice">
@@ -56,7 +67,7 @@ export function ExtrasTab({ value, onChange }: { value: Extras; onChange: (value
             ))}
           </select>
           <button type="button" disabled={!sound || !value.soundEnabled} onClick={() => playSound(sound)}>
-            Play
+            Test
           </button>
         </div>
       </fieldset>

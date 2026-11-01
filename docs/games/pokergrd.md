@@ -111,4 +111,3 @@ Help id 1851: face set 1 (Art Deco), back 5 (Innovation), background 18 (Psyched
 - The high scores and the options are kept in localStorage; Help shows the launcher's rules
   text (as in every game here), and the About box is the short one of the web version.
 - Touch: a card can be dragged with a finger, or a cell tapped.
-- The Hall of Fame's buttons are in the dialog's button row rather than over the flag.

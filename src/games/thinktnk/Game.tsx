@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { EndDialog } from '../../shell/EndDialog.tsx';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { isKey } from '../../shell/keys.ts';
+import { useFixedStep } from '../../shell/loop.ts';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { TouchPad } from '../../shell/TouchPad.tsx';
 import { Window } from '../../shell/Window.tsx';
-import { HighScoreDialog, NameDialog } from '../cheesy/common/HighScores.tsx';
-import { emptyTable, insert, loadScores, placeOf, saveScores, tableOf } from '../cheesy/common/highscores.ts';
-import { isKey } from '../cheesy/common/keys.ts';
-import { LoseDialog } from '../cheesy/common/LoseDialog.tsx';
-import { useFixedStep } from '../cheesy/common/loop.ts';
-import '../cheesy/common/style.css';
 import { LevelDialog, OuchDialog } from './Dialogs.tsx';
 import { Field } from './Field.tsx';
 import { newGame, nextLevel, press, respawn, step, TICK_MS, type Key, type Sound, type State } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
-import './style.css';
 import { loadSettings, saveSettings, type Action, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/arcade.css';
+import './style.css';
 
 const INFO = gameById('thinktnk')!;
 const TITLE = 'Think Tank';
@@ -42,6 +42,7 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
   const current = useRef(game);
   const [open, setOpen] = useState<Open>(null);
   const [scores, setScores] = useState(() => loadScores('thinktnk'));
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const setGame = (state: State) => {
     current.current = state;
@@ -51,27 +52,19 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
   useEffect(() => saveSettings(settings), [settings]);
   useEffect(() => saveScores('thinktnk', scores), [scores]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
   const sounds = (list: Sound[]) => list.forEach(sound);
 
   // The start sound when the window opens, then the first level's "Begin Level".
+  const exit = useStartExit(TITLE, settings, onExit);
+  const started = useRef(false);
   useEffect(() => {
-    const s = loadSettings();
-    for (const event of ['Think Tank Start', 'Begin Level'] as const) {
-      const name = s.sounds[event];
-      if (s.soundEnabled && name) playSound(name);
-    }
-  }, []);
+    if (started.current) return;
+    started.current = true;
+    sound('Begin Level');
+  });
 
-  const exit = () => {
-    sound('Think Tank Exit');
-    onExit();
-  };
-
-  useFixedStep(TICK_MS, game.running && open === null, () => {
+  useFixedStep(TICK_MS, game.running && open === null && !menuOpen, () => {
     const { state, sounds: heard, outcome } = step(current.current, random);
     setGame(state);
     sounds(heard);
@@ -120,6 +113,7 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
       title={TITLE}
       icon={INFO.smallIcon}
       onClose={exit}
+      onMenuChange={setMenuOpen}
       className="game arcade thinktnk"
       menus={[
         {
@@ -164,30 +158,23 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'confirm-new' && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                restart();
-                setOpen(null);
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            restart();
+            setOpen(null);
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'scores' && (
-        <HighScoreDialog
+        <HallOfFame
           title="Hall of Fame"
           table={tableOf(scores, TABLE)}
           onClose={() => setOpen(null)}
-          onClear={() => setScores({ ...scores, tables: { ...scores.tables, [TABLE]: emptyTable() } })}
+          onClear={() => setScores(cleared(scores, TABLE))}
         />
       )}
 
@@ -216,63 +203,42 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
       )}
 
       {open !== null && typeof open === 'object' && open.kind === 'lose' && (
-        <LoseDialog title={TITLE} lines={['You have', 'no more tanks!']} onOk={afterDefeat} />
+        <EndDialog title={TITLE} outcome="lose" lines={['You have', 'no more tanks!']} onOk={afterDefeat} />
       )}
 
       {open !== null && typeof open === 'object' && open.kind === 'name' && (
-        <NameDialog
-          title="Enter your high score"
+        <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            const entry = { name, score: current.current.score };
-            setScores({
-              player: name,
-              tables: { ...scores.tables, [TABLE]: insert(tableOf(scores, TABLE), open.place, entry) },
-            });
+            setScores(record(scores, TABLE, open.place, name, current.current.score));
             setOpen(null);
           }}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              The tank rolls on by itself and turns where the lanes cross. Yellow pellets give an extra shot, red ones
-              faster bullets, blue ones a faster tank, the star an extra tank. A level completed without destroying any
-              enemy earns 1000 points; with every enemy destroyed but no green pellet taken, 300.
-            </p>
-            <p>
-              Keyboard: the arrow keys turn the tank, Space fires (Options › Player Keys changes them), F2 starts a new
-              game. On a touch screen, swipe on the play field to turn, tap it to fire, or use the buttons below it.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls={
+            <>
+              <p>
+                The tank rolls on by itself and turns where the lanes cross. Yellow pellets give an extra shot, red ones
+                faster bullets, blue ones a faster tank, the star an extra tank. A level completed without destroying
+                any enemy earns 1000 points; with every enemy destroyed but no green pellet taken, 300.
+              </p>
+              <p>
+                Keyboard: the arrow keys turn the tank, Space fires (Options › Player Keys changes them), F2 starts a
+                new game. On a touch screen, swipe on the play field to turn, tap it to fire, or use the buttons below
+                it.
+              </p>
+            </>
+          }
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }

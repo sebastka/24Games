@@ -1,0 +1,71 @@
+/* The end-of-game dialogs (EndDialog.tsx): the picture on one side, the texts and OK on the other. */
+
+.end-of-game .dialog-body {
+  padding: 0;
+}
+
+.end-layout {
+  display: flex;
+  width: 320px;
+  max-width: 100%;
+  background: var(--face);
+}
+
+.end-layout .end-picture {
+  flex: none;
+  width: 120px;
+  height: 200px;
+  border-right: 1px solid var(--shadow);
+  box-shadow: 1px 0 var(--light);
+  image-rendering: pixelated;
+}
+
+.end-of-game.win .end-layout {
+  flex-direction: row-reverse;
+}
+
+.end-of-game.win .end-layout .end-picture {
+  border-right: none;
+  border-left: 1px solid var(--shadow);
+  box-shadow: inset 1px 0 var(--light);
+}
+
+.end-texts {
+  flex: 1;
+  text-align: center;
+  color: #000080;
+  font:
+    bold 13px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.end-texts p {
+  margin: 0;
+  min-height: 1em;
+}
+
+.end-texts .end-title {
+  margin: 20px 0 22px;
+  color: #800000;
+  font-size: 22px;
+}
+
+.end-texts p + p {
+  margin-bottom: 22px;
+}
+
+.end-texts .end-ok {
+  display: flex;
+  justify-content: center;
+}
+
+.end-texts .end-ok button {
+  min-width: 70px;
+  padding: 2px 10px;
+  color: var(--dark);
+  font:
+    13px Tahoma,
+    'Microsoft Sans Serif',
+    sans-serif;
+}

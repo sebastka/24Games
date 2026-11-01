@@ -63,6 +63,13 @@
   gap: 12px;
 }
 
-.maze-keys .player-keys[disabled] {
-  opacity: 0.6;
+.maze-size {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: bold;
+}
+
+.maze-size select {
+  font-weight: normal;
 }

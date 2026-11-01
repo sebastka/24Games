@@ -19,7 +19,3 @@
   image-rendering: pixelated;
   touch-action: none;
 }
-
-.mouse-dragging .check:nth-of-type(3) {
-  margin-top: 12px;
-}

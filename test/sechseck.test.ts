@@ -10,9 +10,9 @@ import {
   resume,
   step,
   type GameEvent,
-  type Rand,
   type State,
 } from '../src/games/sechseck/logic.ts';
+import type { Rand } from '../src/shell/random.ts';
 import { loadSettings, SOUND_EVENTS } from '../src/games/sechseck/settings.ts';
 
 /** A rand() returning the given values in turn, then 0. */

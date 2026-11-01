@@ -1,9 +1,8 @@
-import { defaults, loadSettings, saveSettings, type BoardSettings } from './shared/settings.ts';
+import { defaults, loadSettings, saveSettings, type BoardSettings } from '../../shell/czgame/settings.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 
 /** Sound events, with the original's defaults (reversi.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Reversi Plus Start': '',
-  'Reversi Plus Exit': '',
+export const SOUND_EVENTS = soundEvents('Reversi Plus', {
   "Move Player's Piece": 'boing_3',
   "Move Computer's Piece": 'instr_9',
   "Capture Player's Piece": 'click_1',
@@ -11,7 +10,7 @@ export const SOUND_EVENTS = {
   Victory: 'crowd_2',
   Defeat: 'instr_4',
   Tie: 'stopwach',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends BoardSettings {

@@ -2,7 +2,7 @@
 // the card backs with their rounded corners cut out, and the blank card face. The rest of a card
 // (pips, indices, court figures) is drawn from CZGAME32.DLL's bitmaps as they are, like the
 // originals do. See src/shell/cards/draw.ts.
-import { bitmap, load, masked, png, type Image } from '../lib/assets.ts';
+import { bitmap, load, png, type Image } from '../lib/assets.ts';
 
 /** Card size in pixels. */
 const W = 71;
@@ -37,16 +37,4 @@ export default async function extract(): Promise<void> {
     }
   }
   await png('cards/face.png', face);
-
-  // The high score dialogs of the card games (the "Hall of Fame" code linked into each): the
-  // chequered flag (flag2.bmp) and the two rosettes (blue_ri2.bmp, red_rib2.bmp), masks on
-  // their right.
-  await png('cards/flag.png', masked(bitmap(cz, 289), 'right'));
-  await png('cards/blue-ribbon.png', masked(bitmap(cz, 290), 'right'));
-  await png('cards/red-ribbon.png', masked(bitmap(cz, 291), 'right'));
-  // The "You Win!" dialog's thumb up (youwin2.bmp, CZGAME32.DLL dialog 1003), for Siege and
-  // Vanishing Cross; the "You Lose!" dialog's thumb down (iwin2.bmp, dialog 1002), for Poker
-  // Machine.
-  await png('cards/you-win.png', masked(bitmap(cz, 259), 'right'));
-  await png('cards/you-lose.png', masked(bitmap(cz, 258), 'right'));
 }

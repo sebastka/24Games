@@ -3,6 +3,7 @@ import holderCross from '../../assets/vcross/holder-cross.png';
 import holderFoundation from '../../assets/vcross/holder-foundation.png';
 import holderStock from '../../assets/vcross/holder-stock.png';
 import { useFitScale, useImages } from '../../shell/canvas.ts';
+import { useBackground } from '../../shell/canvas.ts';
 import { CARD_H, CARD_W, cardName } from '../../shell/cards/cards.ts';
 import {
   drawDragFeedback,
@@ -13,7 +14,6 @@ import {
   type Zone,
 } from '../../shell/cards/drag.ts';
 import { drawBack, drawCard, useCardArt, type CardLook } from '../../shell/cards/draw.ts';
-import { useBackground } from '../../shell/cards/table.ts';
 import { beep } from '../../shell/sound.ts';
 import { canMove, caption, CROSS, isFoundation, STOCK, top, WASTE, type State } from './logic.ts';
 

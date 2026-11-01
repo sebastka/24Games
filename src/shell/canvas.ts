@@ -1,5 +1,6 @@
-// Helpers for the games' canvases.
-import { useEffect, useState, type RefObject } from 'react';
+// Helpers for the games' canvases, and the window background they paint.
+import { useEffect, useState, type CSSProperties, type RefObject } from 'react';
+import { BACKGROUNDS } from './backgrounds.ts';
 
 /** An image, once loaded (null until then). */
 export function useImage(src: string): HTMLImageElement | null {
@@ -61,4 +62,41 @@ export function useFitScale(box: RefObject<HTMLElement | null>, width: number, h
     };
   }, [box, width, height, reserve]);
   return scale;
+}
+
+/** The URL of background `index`'s texture, or '' for a plain colour (for `useImage`). */
+export const textureOf = (index: number): string => BACKGROUNDS[index]?.texture ?? '';
+
+/**
+ * The window background of Options › Extras (`FUN_004047d0` in reversi.exe): a colour, or a
+ * texture tiled from the window's top left corner. `texture` is the loaded texture, if any.
+ */
+export function fillBackground(
+  ctx: CanvasRenderingContext2D,
+  index: number,
+  texture: HTMLImageElement | null,
+  width: number,
+  height: number,
+): void {
+  const color = BACKGROUNDS[index]?.color;
+  ctx.fillStyle = color || !texture ? (color ?? '#000000') : ctx.createPattern(texture, 'repeat')!;
+  ctx.fillRect(0, 0, width, height);
+}
+
+/** The same background as CSS, for the games that paint it under their canvases. */
+export function backgroundStyle(index: number): CSSProperties {
+  const b = BACKGROUNDS[index];
+  return { backgroundColor: b?.color ?? '#000000', backgroundImage: b?.texture && `url(${b.texture})` };
+}
+
+/** A 1×1 transparent GIF, for useImage when there is no texture. */
+const NONE = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+export type Painter = (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+
+/** A function painting background `index` (null until its texture is loaded). */
+export function useBackground(index: number): Painter | null {
+  const texture = useImage(textureOf(index) || NONE);
+  if (BACKGROUNDS[index]?.texture && !texture) return null;
+  return (ctx, width, height) => fillBackground(ctx, index, texture, width, height);
 }

@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import layouts from '../../assets/pegoplis/layouts.json';
-import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
+import { BoardTab, DraggingTab, ListTab, PiecesTab } from '../../shell/czgame/OptionsTabs.tsx';
+import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { BoardPreview, PiecePreview } from '../quinto/Previews.tsx';
-import { BOARD_SETS, PIECE_SETS } from '../quinto/sets.ts';
-import { AnimationTab } from './AnimationTab.tsx';
 import type { Settings } from './settings.ts';
 
 const NAMES = layouts.map((l) => l.name);
@@ -17,26 +15,6 @@ export function OptionsDialog(props: {
   onCancel: () => void;
 }) {
   const [draft, setDraft] = useState(props.settings);
-
-  const list = (
-    legend: string,
-    items: string[],
-    selected: number,
-    onSelect: (i: number) => void,
-    preview: React.ReactNode,
-    previewLegend: string,
-  ) => (
-    <div className="pieces pegoplis-sets">
-      <fieldset>
-        <legend>{legend}</legend>
-        <ListBox label={legend} items={items} selected={selected} onSelect={onSelect} rows={7} />
-      </fieldset>
-      <fieldset>
-        <legend>{previewLegend}</legend>
-        {preview}
-      </fieldset>
-    </div>
-  );
 
   return (
     <Dialog
@@ -51,36 +29,24 @@ export function OptionsDialog(props: {
         tabs={[
           {
             label: '~Options',
-            content: list(
-              'Layout Names',
-              NAMES,
-              draft.layout,
-              (layout) => setDraft({ ...draft, layout }),
-              <img className="preview" src={props.previews[draft.layout]} alt="" width={80} height={80} />,
-              'Layout Preview',
+            content: (
+              <ListTab
+                legend="Layout Names"
+                items={NAMES}
+                value={draft.layout}
+                onChange={(layout) => setDraft({ ...draft, layout })}
+                previewLegend="Layout Preview"
+                preview={<img className="preview" src={props.previews[draft.layout]} alt="" width={80} height={80} />}
+              />
             ),
           },
           {
             label: '~Board',
-            content: list(
-              'Board Names',
-              BOARD_SETS,
-              draft.boardSet,
-              (boardSet) => setDraft({ ...draft, boardSet }),
-              <BoardPreview set={draft.boardSet} />,
-              'Board Preview',
-            ),
+            content: <BoardTab value={draft.boardSet} onChange={(boardSet) => setDraft({ ...draft, boardSet })} />,
           },
           {
             label: '~Pieces',
-            content: list(
-              'Piece Names',
-              PIECE_SETS.map((p) => p.name),
-              draft.pieceSet,
-              (pieceSet) => setDraft({ ...draft, pieceSet }),
-              <PiecePreview set={draft.pieceSet} />,
-              'Piece Preview',
-            ),
+            content: <PiecesTab value={draft.pieceSet} onChange={(pieceSet) => setDraft({ ...draft, pieceSet })} />,
           },
           {
             label: '~Extras',
@@ -88,7 +54,16 @@ export function OptionsDialog(props: {
           },
           {
             label: '~Animation',
-            content: <AnimationTab value={draft} onChange={(a) => setDraft({ ...draft, ...a })} />,
+            content: (
+              <DraggingTab
+                value={{
+                  drag: draft.dragBitmaps,
+                  showDragZones: draft.showDragZones,
+                  showDropZones: draft.showDropZones,
+                }}
+                onChange={({ drag, ...zones }) => setDraft({ ...draft, dragBitmaps: drag, ...zones })}
+              />
+            ),
           },
         ]}
       />

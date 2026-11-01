@@ -7,9 +7,9 @@ import pelletsPng from '../../assets/thinktnk/pellets.png';
 import playerPng from '../../assets/thinktnk/player.png';
 import wallsPng from '../../assets/thinktnk/walls.png';
 import { BACKGROUNDS } from '../../shell/backgrounds.ts';
-import { useFitScale, useImages } from '../../shell/canvas.ts';
-import { background, panel } from '../cheesy/common/draw.ts';
-import { coarsePointer } from '../cheesy/common/loop.ts';
+import { fillBackground, useFitScale, useImages } from '../../shell/canvas.ts';
+import { bevel } from '../../shell/czgame/draw.ts';
+import { coarsePointer } from '../../shell/loop.ts';
 import { BULLET, FIELD, frameOf, LANE, PELLET, TANK, type Direction, type State } from './logic.ts';
 
 /** The window's client area (its resource: 512×378): the field, then the panels. */
@@ -54,7 +54,7 @@ export function Field(props: { state: State; background: number; onTurn: (d: Dir
       HTMLImageElement,
       HTMLImageElement | undefined,
     ];
-    background(ctx, props.background, textureImg ?? null);
+    fillBackground(ctx, props.background, textureImg ?? null, WIDTH, HEIGHT);
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, FIELD, FIELD);
     for (let i = 0; i < 10; i++) {
@@ -77,7 +77,7 @@ export function Field(props: { state: State; background: number; onTurn: (d: Dir
     ctx.drawImage(logo, 382, 4);
     const numbers = [state.score, state.tanks, state.level, state.timeBonus];
     PANELS.forEach((p, i) => {
-      panel(ctx, 385, p.top, 508, p.top + 70, 2);
+      bevel(ctx, { left: 385, top: p.top, right: 508, bottom: p.top + 70 }, 2);
       ctx.fillStyle = NAVY;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';

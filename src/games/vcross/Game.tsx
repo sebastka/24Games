@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
-import { gameById } from '../../shell/catalog.ts';
+import { CONFIRM_NEW, CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { AnimationTab, BacksTab, FacesTab } from '../../shell/cards/OptionsTabs.tsx';
-import { EndDialog } from '../../shell/cards/EndDialog.tsx';
+import { gameById } from '../../shell/catalog.ts';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
+import { EndDialog } from '../../shell/EndDialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { Label, Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
 import { canUndo, deal, dealFromStock, foundationFor, isFoundation, move, undo, type State } from './logic.ts';
@@ -23,13 +24,10 @@ export default function VanishingCross({ onExit }: { onExit: () => void }) {
 
   useEffect(() => saveSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
 
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound(`${TITLE} Start`);
     sound('Deal Cards');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -38,11 +36,6 @@ export default function VanishingCross({ onExit }: { onExit: () => void }) {
     setGame(deal(s.buildOnInitial, Math.random));
     sound('Deal Cards');
     setOpen(null);
-  };
-
-  const exit = () => {
-    sound(`${TITLE} Exit`);
-    onExit();
   };
 
   /** FUN_0040b358 after each move: when only the foundations hold cards, "You founded all of the cards!". */
@@ -134,57 +127,23 @@ export default function VanishingCross({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'new' && (
-        <Dialog
-          title={TITLE}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => newGame() },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+        <ConfirmBox title={TITLE} text={CONFIRM_NEW} onYes={() => newGame()} onNo={() => setOpen(null)} />
       )}
 
       {open !== null && typeof open === 'object' && (
-        <EndDialog title={TITLE} outcome="win" lines={open.won} onClose={() => setOpen(null)} />
+        <EndDialog title={TITLE} outcome="win" lines={open.won} onOk={() => setOpen(null)} />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Click the stock to turn its top card over. Drag the waste's or the cross's top card onto a cross pile one
-              rank higher (a king goes on an ace), onto an empty one, or onto its foundation. Double-click (or
-              double-tap) a card to send it to a foundation. Keyboard: F2 starts a new game, Ctrl+Z undoes the last
-              move.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Click the stock to turn its top card over. Drag the waste's or the cross's top card onto a cross pile one rank higher (a king goes on an ace), onto an empty one, or onto its foundation. Double-click (or double-tap) a card to send it to a foundation. Keyboard: F2 starts a new game, Ctrl+Z undoes the last move."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }
@@ -263,17 +222,12 @@ function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

@@ -21,3 +21,8 @@
 .game.bulldozer {
   min-width: min(646px, 100%);
 }
+
+/* Passwords are capitals (the original's edit field upper-cases what is typed). */
+input.bulldozer-password {
+  text-transform: uppercase;
+}

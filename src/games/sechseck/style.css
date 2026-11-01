@@ -17,14 +17,14 @@
 }
 
 .board-size,
-.animation {
+.sechseck-animation {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .board-size fieldset,
-.animation fieldset {
+.sechseck-animation fieldset {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -32,13 +32,13 @@
 }
 
 .board-size .radio,
-.animation .radio {
+.sechseck-animation .radio {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.animation .zones {
+.sechseck-animation .zones {
   display: flex;
   flex-direction: column;
   justify-content: center;

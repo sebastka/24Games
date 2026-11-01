@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { Label } from '../../shell/Window.tsx';
-import { ConfirmRestart } from '../wari/czgame.tsx';
+import '../../shell/czgame/style.css';
 import { SIZES } from './logic.ts';
 import { TILE_SETS, type Settings } from './settings.ts';
 
@@ -103,7 +104,14 @@ export function OptionsDialog(props: {
           ]}
         />
       </Dialog>
-      {confirm && <ConfirmRestart title="Voracity" onYes={() => props.onOk(draft)} onNo={() => setConfirm(false)} />}
+      {confirm && (
+        <ConfirmBox
+          title="Voracity"
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
+      )}
     </>
   );
 }

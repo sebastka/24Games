@@ -1,16 +1,17 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 import { END_SCREEN } from './progress.ts';
 
-/** Sound events, with the original's defaults (bulldoze.exe registers them at start). */
-export const SOUND_EVENTS = {
+/** Sound events, with the original's defaults (bulldoze.exe registers them at start, FUN_00403ff0). */
+export const SOUND_EVENTS = soundEvents('Bulldozer', {
   Move: '',
   'Move Rock': '',
   'Move Rock To Target': 'click_4',
   'Complete Level': 'crowd_3',
   'Receive Password': 'crowd_2',
   'Complete Final Level': 'handel',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

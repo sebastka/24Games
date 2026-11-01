@@ -1,16 +1,15 @@
-import { defaults, loadSettings, saveSettings, type BoardSettings } from '../reversi/shared/settings.ts';
+import { defaults, loadSettings, saveSettings, type BoardSettings } from '../../shell/czgame/settings.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 
 /** Sound events, with the original's defaults (connect.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Checker Connector Start': '',
-  'Checker Connector Exit': '',
+export const SOUND_EVENTS = soundEvents('Checker Connector', {
   'Player Piece Move': 'boing_3',
   'Enemy Piece Move': 'instr_9',
   'Player in Check': 'cuckoo',
   Victory: 'crowd_3',
   Defeat: 'laugh_4',
   Tie: 'stopwach',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends BoardSettings {

@@ -1,12 +1,11 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { KEY_NAMES } from '../../shell/keys.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { KEY_NAMES } from './common/keys.ts';
 import { SIZES } from './logic.ts';
 
 /** Sound events, with the original's defaults (cheesy.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Cheesy Pursuit Start': '',
-  'Cheesy Pursuit Exit': '',
+export const SOUND_EVENTS = soundEvents('Cheesy Pursuit', {
   'Eat Cheese': 'mouse_7',
   'Eat Gouda': 'mouse_9',
   'Eat CheeseBomb': 'mouse_7',
@@ -15,7 +14,7 @@ export const SOUND_EVENTS = {
   'Cat Gets Mouse': 'mouse_5',
   'Level Complete': 'instr_1',
   Defeat: 'instr_2',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export type Action = 'up' | 'down' | 'left' | 'right' | 'bomb';

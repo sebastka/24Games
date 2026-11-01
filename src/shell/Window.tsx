@@ -23,11 +23,18 @@ export interface Menu {
   items: MenuItem[];
 }
 
-/** A Windows 95 menu bar: click or Alt+mnemonic opens a menu, arrows and Enter pick an item. */
-export function MenuBar({ menus }: { menus: Menu[] }) {
+/**
+ * A Windows 95 menu bar: click or Alt+mnemonic opens a menu, arrows and Enter pick an item.
+ * `onOpenChange` tells whether a menu is pulled down (the real-time games pause meanwhile, as the
+ * originals' timers do not run while a menu is open).
+ */
+export function MenuBar({ menus, onOpenChange }: { menus: Menu[]; onOpenChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const bar = useRef<HTMLDivElement>(null);
+  const isOpen = open !== null;
+
+  useEffect(() => onOpenChange?.(isOpen), [isOpen, onOpenChange]);
 
   const openMenu = (i: number) => {
     setOpen(i);
@@ -132,6 +139,8 @@ export function Window(props: {
   title: string;
   icon: string;
   menus?: Menu[];
+  /** Called when a menu is pulled down (true) or closed (false). */
+  onMenuChange?: (open: boolean) => void;
   onClose?: () => void;
   className?: string;
   children: ReactNode;
@@ -147,7 +156,7 @@ export function Window(props: {
           </button>
         )}
       </header>
-      {props.menus && <MenuBar menus={props.menus} />}
+      {props.menus && <MenuBar menus={props.menus} onOpenChange={props.onMenuChange} />}
       <div className="window-body">{props.children}</div>
     </section>
   );

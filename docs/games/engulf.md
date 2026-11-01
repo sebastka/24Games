@@ -4,7 +4,7 @@ Ataxx against the computer on a 7×7 board with blocked squares: copy or jump yo
 the opponent's around the square you land on.
 
 Built on the board game framework described in [reversi.md](reversi.md), shared in
-[src/games/reversi/shared](../../src/games/reversi/shared).
+[src/shell/czgame](../../src/shell/czgame) and the shell's dialogs.
 
 ## Window
 

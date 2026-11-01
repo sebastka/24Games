@@ -4,7 +4,7 @@ Four in a row against the computer: drop pieces into the columns of a 7×6 board
 
 Built on the board game framework described in [reversi.md](reversi.md) (piece sets, boards,
 options tabs, animation, end-of-game dialogs), shared in
-[src/games/reversi/shared](../../src/games/reversi/shared).
+[src/shell/czgame](../../src/shell/czgame) and the shell's dialogs.
 
 ## Window
 

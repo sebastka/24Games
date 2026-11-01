@@ -3,11 +3,11 @@
 // panel), at their resource positions.
 import { useEffect, useRef } from 'react';
 import { useFitScale } from '../../shell/canvas.ts';
+import { useBackground } from '../../shell/canvas.ts';
 import { CARD_H, CARD_W, cardName } from '../../shell/cards/cards.ts';
 import { canvasPoint, inside, type Rect } from '../../shell/cards/drag.ts';
 import { drawBack, drawCard, useCardArt, type CardLook } from '../../shell/cards/draw.ts';
 import { HAND_NAMES } from '../../shell/cards/poker.ts';
-import { useBackground } from '../../shell/cards/table.ts';
 import { buttonLabel, PAYTABLES, payout, type State } from './logic.ts';
 
 /** The main window's client area (pokermat.exe's window resource 256). */

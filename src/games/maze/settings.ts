@@ -1,17 +1,16 @@
+import { KEY_NAMES } from '../../shell/keys.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { KEY_NAMES } from '../cheesy/common/keys.ts';
 import type { Options } from './logic.ts';
 
 /** Sound events, with the original's defaults (maze.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'MazeRace Start': '',
-  'MazeRace Exit': '',
+export const SOUND_EVENTS = soundEvents('MazeRace', {
   'Begin New Game': 'charge',
   'White Mouse Thrown': 'mouse_4',
   'Brown Mouse Thrown': 'mouse_5',
   'White Mouse Win': 'mouse_2',
   'Brown Mouse Win': 'mouse_3',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export type Action = 'up' | 'down' | 'left' | 'right';

@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import logoUrl from '../../assets/meltdown/logo.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
-import type { Point } from '../reversi/shared/animate.ts';
-import { BOARD_SHEET, PIECE, PIECE_SHEETS, SQUARE } from '../reversi/shared/assets.ts';
-import { bevel, centeredText, fillBackground, outlinedText, textureOf } from '../reversi/shared/draw.ts';
-import { usePieces } from '../reversi/shared/sprites.ts';
+import { fillBackground, textureOf, useFitScale, useImage } from '../../shell/canvas.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, outlinedText } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, PIECE, SQUARE, usePieces } from '../../shell/czgame/pieces.ts';
 import { HEIGHT, LOGO_AT, PANELS, pieceSize, SCORE_BOX, SIDE_PIECE, squareAt, WIDTH } from './layout.ts';
 import { COMPUTER, PLAYER, sizeOf, totals, units, type Board as Squares, type Side } from './logic.ts';
 
@@ -35,7 +34,7 @@ export function Board(props: {
   const sheet = useImage(BOARD_SHEET);
   const logo = useImage(logoUrl);
   const texture = useImage(textureOf(props.background));
-  const pieces = usePieces(PIECE_SHEETS[props.pieceSet]!);
+  const pieces = usePieces(props.pieceSet);
   const [hover, setHover] = useState(-1);
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export function Board(props: {
     // The original shrinks the piece set with StretchBlt: no smoothing.
     ctx.imageSmoothingEnabled = false;
     const piece = (side: Side, p: Point, size: number) =>
-      ctx.drawImage(pieces, side === PLAYER ? 0 : PIECE, 0, PIECE, PIECE, p.x, p.y, size, size);
+      ctx.drawImage(pieces[side === PLAYER ? 0 : 1], p.x, p.y, size, size);
     fillBackground(ctx, props.background, texture, WIDTH, HEIGHT);
     squares.forEach((v, i) => {
       const x = i % n;
@@ -76,9 +75,9 @@ export function Board(props: {
     PANELS.forEach((p, i) => {
       bevel(ctx, p.box, 2);
       const label = 'bold 20px Arial, Helvetica, sans-serif';
-      centeredText(ctx, i === 0 ? 'Computer' : 'Player', p.name, label, RED, true);
-      centeredText(ctx, 'Score', p.score, label, RED, true);
-      bevel(ctx, p.count, 2, undefined, true);
+      centeredText(ctx, i === 0 ? 'Computer' : 'Player', p.name, { font: label, color: RED, shadow: true });
+      centeredText(ctx, 'Score', p.score, { font: label, color: RED, shadow: true });
+      bevel(ctx, p.count, 2, undefined, 'sunken');
       const total = String(i === 0 ? t.computer : t.player);
       outlinedText(ctx, total, p.count, 'bold 40px Arial, Helvetica, sans-serif', YELLOW, RED);
     });

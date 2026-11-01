@@ -35,10 +35,6 @@
   gap: 6px;
 }
 
-.crypto-extras {
-  justify-content: center;
-}
-
 /* The on-screen letters, on touch screens only. */
 .letter-pad {
   display: none;

@@ -1,0 +1,13 @@
+/* The play field of the real-time games (Cheesy Pursuit, Think Tank, MazeRace). */
+
+.arcade .field {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.arcade .field canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}

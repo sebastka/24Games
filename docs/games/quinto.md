@@ -15,8 +15,8 @@ piece and the four next to it.
   each followed by its mask), named by string 1000 (Checkers, Stones, Chips, Hazards,
   Zen/Dragon, Happies/Angries, Solar/Lunar, Conspiracy, Monochrome); board sets, bitmap 4020
   (`board.bmp`, 80×40 per set: two 40×40 squares), named by string 1001 (Classic, Purple & Gold,
-  Marble, Beveled, Grid, Blobs, Space, Monochrome). `src/games/quinto/sets.ts` has them for the
-  other board games. Settings `PlayingPiece`, `PlayingBoard` (`FUN_00406d20`, `FUN_00407590`).
+  Marble, Beveled, Grid, Blobs, Space, Monochrome). `src/shell/czgame/pieces.ts` has them for all
+  the board games. Settings `PlayingPiece`, `PlayingBoard` (`FUN_00406d20`, `FUN_00407590`).
 
 ## Rules
 

@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import layouts from '../../assets/engulf/layouts.json';
 import type { GameProps } from '../index.ts';
+import { CONFIRM_NEW, ConfirmBox, MessageBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { pause, useTurns } from '../../shell/czgame/turns.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { msvcRand, type Rand } from '../../shell/random.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { msvcRand } from '../reversi/logic.ts';
-import { animate, type Point } from '../reversi/shared/animate.ts';
-import { CONFIRM_NEW, ConfirmBox, MessageBox } from '../reversi/shared/Boxes.tsx';
-import { EndDialog, type Outcome } from '../reversi/shared/EndDialog.tsx';
-import { AboutDialog, RulesDialog } from '../reversi/shared/HelpDialogs.tsx';
-import '../reversi/shared/style.css';
-import { pause, useTurns } from '../reversi/shared/turns.ts';
 import { scoreInBackground } from './ai.ts';
 import { Board } from './Board.tsx';
 import { pieceAt } from './layout.ts';
@@ -27,12 +26,12 @@ import {
   startBoard,
   type Board as Squares,
   type Move,
-  type Rand,
   type Side,
 } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
 import { nextLayout, startingBoardFor } from './progress.ts';
 import { loadEngulfSettings, saveEngulfSettings, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/czgame/style.css';
 import './style.css';
 
 const INFO = gameById('engulf')!;
@@ -73,11 +72,7 @@ export default function Engulf({ onExit }: GameProps) {
 
   useEffect(() => saveEngulfSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const { soundEnabled, sounds } = current.current.settings;
-    const name = sounds[event];
-    if (soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(current.current.settings, event);
 
   const ask = (m: Pending) => new Promise<void>((resolve) => setModal({ ...m, resolve }));
 
@@ -187,8 +182,8 @@ export default function Engulf({ onExit }: GameProps) {
     if (!s.playerFirst) run(computerTurn);
   };
 
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound('Engulf Start');
     if (!current.current.settings.playerFirst) run(computerTurn);
     // Once, when the window opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -207,11 +202,6 @@ export default function Engulf({ onExit }: GameProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
-
-  const exit = () => {
-    sound('Engulf Exit');
-    onExit();
-  };
 
   const close = () => setModal(null);
   const resolve = () => {
@@ -296,15 +286,14 @@ export default function Engulf({ onExit }: GameProps) {
 
       {modal?.kind === 'pass' && (
         <MessageBox
+          icon="info"
           title={TITLE}
           text={modal.side === COMPUTER ? "I must pass.  It's your turn again." : "You must pass.  It's my move again."}
           onOk={resolve}
         />
       )}
 
-      {modal?.kind === 'end' && (
-        <EndDialog title={TITLE} outcome={modal.outcome} lines={modal.lines} onClose={resolve} />
-      )}
+      {modal?.kind === 'end' && <EndDialog title={TITLE} outcome={modal.outcome} lines={modal.lines} onOk={resolve} />}
 
       {modal?.kind === 'rules' && (
         <RulesDialog

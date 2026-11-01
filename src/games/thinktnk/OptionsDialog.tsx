@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { PlayerKeys } from '../cheesy/common/PlayerKeys.tsx';
+import { PlayerKeys } from '../../shell/PlayerKeys.tsx';
 import type { Action, Settings } from './settings.ts';
 
 /** The Player Keys, laid out as the original's dialog: up, then left, right and fire, then down. */
@@ -45,7 +46,7 @@ export function OptionsDialog(props: {
               content: (
                 <PlayerKeys
                   legend="Player Keys"
-                  rows={KEY_ROWS}
+                  groups={KEY_ROWS}
                   keys={draft.keys}
                   onChange={(keys) => setDraft({ ...draft, keys })}
                 />
@@ -59,17 +60,12 @@ export function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title="Think Tank"
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

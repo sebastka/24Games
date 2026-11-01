@@ -4,6 +4,7 @@
 //
 // Time is simulated in steps of 1 ms: the game is driven by one StarView timer whose timeout
 // (1000 ms at level 1, down to 2 ms) is a whole number of milliseconds.
+import type { Rand } from '../../shell/random.ts';
 
 export const COLS = 6;
 /** Rows of the grid: 13 visible (0 at the bottom), and 2 hidden above where a stack can stick out. */
@@ -27,11 +28,6 @@ export const Piece = {
 export const PERIODS = [1000, 850, 700, 600, 500, 425, 350, 300, 250, 200, 150, 100, 50, 30, 20, 10, 5, 2];
 
 export const STEP_MS = 1;
-
-/** The C runtime's rand(): an integer in 0..32767. Injected, so that tests are deterministic. */
-export type Rand = () => number;
-
-export const randomRand: Rand = () => Math.floor(Math.random() * 32768);
 
 /** A stack, bottom piece first. Special pieces come alone: [special, 0, 0]. */
 export type Stack = readonly [number, number, number];

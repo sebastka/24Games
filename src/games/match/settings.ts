@@ -1,4 +1,5 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 import type { Skill } from './logic.ts';
 
@@ -6,13 +7,11 @@ import type { Skill } from './logic.ts';
  * Sound events, with the original's defaults: "<title> Start" and "<title> Exit", which every
  * game registers (FUN_00402dc0), then match.exe's own (FUN_00401100).
  */
-export const SOUND_EVENTS = {
-  'CardMatch Start': '',
-  'CardMatch Exit': '',
+export const SOUND_EVENTS = soundEvents('CardMatch', {
   'Flip Card': 'click_4',
   'Make a match': 'boing_6',
   Victory: 'baby_lf3',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

@@ -1,4 +1,5 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 
 /**
@@ -6,9 +7,7 @@ import { load, save } from '../../shell/storage.ts';
  * "Match n" is played for a piece matching n traits of its neighbours. `ding_6` is not on the CD:
  * the original plays nothing for "Match 7" either.
  */
-export const SOUND_EVENTS = {
-  'Sechseck Start': '',
-  'Sechseck Exit': '',
+export const SOUND_EVENTS = soundEvents('Sechseck', {
   'Piece Drag': 'click_5',
   'Match 0': 'click_4',
   'Match 1': 'click_1',
@@ -25,7 +24,7 @@ export const SOUND_EVENTS = {
   'Match 12': 'orch_2',
   Penalty: 'bloup',
   'Game Over': 'instr_1',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export const BOARD_NAMES = ['Small board', 'Medium board', 'Large board'];

@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameProps } from '../index.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { PIECE, SQUARE } from '../../shell/czgame/pieces.ts';
+import { pause, useTurns } from '../../shell/czgame/turns.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { msvcRand, type Rand } from '../../shell/random.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { msvcRand } from '../reversi/logic.ts';
-import { animate, type Point } from '../reversi/shared/animate.ts';
-import { PIECE, SQUARE } from '../reversi/shared/assets.ts';
-import { CONFIRM_NEW, ConfirmBox } from '../reversi/shared/Boxes.tsx';
-import { EndDialog, type Outcome } from '../reversi/shared/EndDialog.tsx';
-import { AboutDialog, RulesDialog } from '../reversi/shared/HelpDialogs.tsx';
-import '../reversi/shared/style.css';
-import { pause, useTurns } from '../reversi/shared/turns.ts';
 import { Board } from './Board.tsx';
 import { SIDE_PIECE, squareAt } from './layout.ts';
 import {
@@ -25,11 +24,11 @@ import {
   units,
   type Board as Squares,
   type Event,
-  type Rand,
   type Side,
 } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
 import { loadMeltdownSettings, saveMeltdownSettings, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/czgame/style.css';
 import './style.css';
 
 const INFO = gameById('meltdown')!;
@@ -45,8 +44,8 @@ const flyingSize = (u: number): number => [12, 12, 24, 32, 40][u] ?? 12;
 export default function CoreMeltdown({ onExit }: GameProps) {
   const [settings, setSettings] = useState<Settings>(loadMeltdownSettings);
   const [squares, setSquares] = useState<Squares>(() => emptyBoard(settings.boardSize));
-  // The squares the player may click, recomputed at the start and after the computer's turns
-  // only (`FUN_00401dd0`): the computer's opening square stays clickable, as in the original.
+  // The squares the player may click (`FUN_00401dd0`), recomputed at the start and after each of
+  // the computer's turns, its opening included.
   const [allowed, setAllowed] = useState<readonly boolean[]>(() => clickable(emptyBoard(settings.boardSize)));
   // A game in progress (the original's flag at +0x189).
   const [active, setActive] = useState(true);
@@ -65,11 +64,7 @@ export default function CoreMeltdown({ onExit }: GameProps) {
 
   useEffect(() => saveMeltdownSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const { soundEnabled, sounds } = current.current.settings;
-    const name = sounds[event];
-    if (soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(current.current.settings, event);
 
   const commit = (board: Squares) => {
     current.current.board = board;
@@ -128,10 +123,13 @@ export default function CoreMeltdown({ onExit }: GameProps) {
     await fly(square, value, alive, signal);
     sound('Computer Expands');
     if (opening) {
-      // The opening move sets off no reaction, and the clickable squares are not recomputed.
+      // The opening move sets off no reaction. The original does not recompute the clickable
+      // squares after it either, which leaves the computer's square clickable (a click there
+      // gave it to the player, who lost); fixed here (see docs/games/meltdown.md).
       const next = [...board];
       next[square] = value;
       commit(next);
+      setAllowed(clickable(next));
       return;
     }
     const { board: after, events } = computerPlace(board, square);
@@ -168,8 +166,8 @@ export default function CoreMeltdown({ onExit }: GameProps) {
     if (!s.playerFirst) run((alive, signal) => computerTurn(alive, signal, true));
   };
 
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound('Core Meltdown Start');
     if (!current.current.settings.playerFirst) newGame();
     // Once, when the window opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -195,11 +193,6 @@ export default function CoreMeltdown({ onExit }: GameProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
-
-  const exit = () => {
-    sound('Core Meltdown Exit');
-    onExit();
-  };
 
   const close = () => setModal(null);
 
@@ -271,7 +264,7 @@ export default function CoreMeltdown({ onExit }: GameProps) {
           title={TITLE}
           outcome={modal.outcome}
           lines={modal.lines}
-          onClose={() => {
+          onOk={() => {
             modal.resolve();
             close();
           }}

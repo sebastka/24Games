@@ -1,20 +1,19 @@
 import layouts from '../../assets/pegoplis/layouts.json';
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 
 /**
  * Sound events, with the original's defaults: "<title> Start" and "<title> Exit", which every
  * game registers, then pegoplis.exe's own (FUN_00401000).
  */
-export const SOUND_EVENTS = {
-  'Pegopolis Start': '',
-  'Pegopolis Exit': '',
+export const SOUND_EVENTS = soundEvents('Pegopolis', {
   'Piece Drag': 'click_5',
   'Piece Drop': 'click_4',
   'Piece Drop Error': 'cuckoo',
   Victory: 'crowd_2',
   Defeat: 'spooky_3',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

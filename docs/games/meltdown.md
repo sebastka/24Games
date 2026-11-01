@@ -4,7 +4,7 @@ Chain Reaction against the computer: add units to your squares; a square at its 
 explodes into its neighbours, taking them over; wipe the opponent off the board.
 
 Built on the board game framework described in [reversi.md](reversi.md), shared in
-[src/games/reversi/shared](../../src/games/reversi/shared).
+[src/shell/czgame](../../src/shell/czgame) and the shell's dialogs.
 
 ## Window
 
@@ -47,7 +47,7 @@ to 12, 24 and 40 pixels at each new game, `FUN_00401a30`): 1 unit 12×12, 2 unit
 - **Computer first**: it opens on a random square, without reaction and without recomputing the
   clickable squares, so that its square stays clickable: clicking it adds a unit to the
   computer's square (with the player's sound), after which the computer moves and the player,
-  without units, has lost. Kept as in the original.
+  without units, has lost. **Fixed** in the web version (see the deviations).
 
 ## The computer (`FUN_004045e0`)
 
@@ -86,6 +86,10 @@ the computer's moves under Wine) on 690 positions of all sizes and depths.
 | Defeat              | `spooky_2` |
 
 ## Deviations from the original
+
+- **Fixed: the computer's opening square.** After the computer's opening move, the clickable
+  squares are recomputed, so its square can no longer be clicked. In the original, clicking it
+  added a unit to the computer's square and lost the game at once.
 
 - A reaction plays only the sound of its last unit (the original starts one per unit, each
   cutting the previous, so that only the last is heard as well).

@@ -1,11 +1,10 @@
+import { DEFAULT_SPEED } from '../../shell/czgame/animate.ts';
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { DEFAULT_SPEED } from './czgame.ts';
 
 /** Sound events, with the original's defaults (wari.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Wari Start': '',
-  'Wari Exit': '',
+export const SOUND_EVENTS = soundEvents('Wari', {
   'Pick Up - Empty Pit': 'click_5',
   'Pick Up - Full Pit': 'click_5',
   'Drop - Empty Pit': 'click_4',
@@ -13,7 +12,7 @@ export const SOUND_EVENTS = {
   Victory: 'instr_5',
   Defeat: 'gong_1',
   Tie: 'stopwach',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {
@@ -23,7 +22,7 @@ export interface Settings extends Extras {
   perPit: number;
   /** `PlayerGoesFirst`. */
   playerFirst: boolean;
-  /** Index in PIECE_SET_NAMES (`PlayingPiece`). */
+  /** Index in PIECE_SETS (`PlayingPiece`). */
   pieceSet: number;
   /** 0 (no animation) or 1-15 (`AnimationSpeed`). */
   speed: number;

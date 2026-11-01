@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, BoardTab, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { CONFIRM_OPTIONS, ConfirmBox } from '../reversi/shared/Boxes.tsx';
-import { AnimationTab, BoardTab, PiecesTab, SkillLevel } from '../reversi/shared/OptionsTabs.tsx';
 import type { Settings } from './settings.ts';
 
 const SIZES = ['5 X 5', '6 X 6', '7 X 7'];

@@ -1,7 +1,7 @@
 // The window of Core Meltdown (`FUN_00401000`, drawn by `FUN_00402fa0` and `FUN_00403680`):
 // 510×291 whatever the board size.
-import type { Point } from '../reversi/shared/animate.ts';
-import { SQUARE } from '../reversi/shared/assets.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { SQUARE } from '../../shell/czgame/pieces.ts';
 import { COMPUTER, PLAYER, type Side } from './logic.ts';
 
 export const WIDTH = 510;

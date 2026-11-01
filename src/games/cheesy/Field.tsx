@@ -4,9 +4,9 @@ import cheese from '../../assets/cheesy/cheese.png';
 import mice from '../../assets/cheesy/mice.png';
 import board from '../../assets/shared/czgame/board.png';
 import { BACKGROUNDS } from '../../shell/backgrounds.ts';
-import { useFitScale, useImages } from '../../shell/canvas.ts';
-import { background, panel } from './common/draw.ts';
-import { coarsePointer } from './common/loop.ts';
+import { fillBackground, useFitScale, useImages } from '../../shell/canvas.ts';
+import { bevel } from '../../shell/czgame/draw.ts';
+import { coarsePointer } from '../../shell/loop.ts';
 import { CAT, CELL, isEdge, MOUSE_INSET, type Cat, type Direction, type State } from './logic.ts';
 import { BOARD } from './settings.ts';
 
@@ -60,12 +60,12 @@ export function Field(props: {
       HTMLImageElement,
       HTMLImageElement | undefined,
     ];
-    background(ctx, props.background, textureImg ?? null);
+    fillBackground(ctx, props.background, textureImg ?? null, WIDTH, HEIGHT);
 
     const numbers = [state.score, state.cheeseValue, state.bombs, state.lives];
     PANELS.forEach((p, i) => {
       const [l, t, r, b] = p.box;
-      panel(ctx, l, t, r, b);
+      bevel(ctx, { left: l, top: t, right: r, bottom: b }, 1);
       if ('icon' in p) {
         // The cheddar slice, the CheeseBomb, the chosen mouse looking left.
         if (i === 1) ctx.drawImage(cheeseImg, 0, 0, 32, 32, p.icon.x, p.icon.y, 32, 32);

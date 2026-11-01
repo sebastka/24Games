@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import layoutData from '../../assets/pegoplis/layouts.json';
-import codezone from '../../assets/shared/codezone.png';
-import { BACKGROUNDS } from '../../shell/backgrounds.ts';
+import { CONFIRM_NEW, CONFIRM_OPTIONS, ConfirmBox, MessageBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { EndDialog } from '../../shell/EndDialog.tsx';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { HallOfFameDialog, HighScoreDialog, OutcomeDialog } from '../match/Dialogs.tsx';
-import { insert, loadScores, placeOf, saveScores, type Scores } from '../match/hallOfFame.ts';
-import { PIECE_SETS } from '../quinto/sets.ts';
 import { Board } from './Board.tsx';
 import { jump, piecesLeft, start, type Layout, type Outcome, type State } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
@@ -50,7 +50,7 @@ type Open =
 export default function Pegopolis({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [game, setGame] = useState<State>(() => start(LAYOUTS[settings.layout]!));
-  const [scores, setScores] = useState<Scores>(() => loadScores('pegoplis', LAYOUTS.length));
+  const [scores, setScores] = useState<HighScores>(() => loadScores('pegoplis'));
   const [open, setOpen] = useState<Open>(null);
   const layout = LAYOUTS[settings.layout]!;
   const title = `${TITLE} - ${layout.name}`;
@@ -58,21 +58,9 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
   useEffect(() => saveSettings(settings), [settings]);
   useEffect(() => saveScores('pegoplis', scores), [scores]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
 
-  // "<title> Start", once (by default no sound).
-  const [atStart] = useState(settings);
-  useEffect(() => {
-    const name = atStart.sounds[`${TITLE} Start`];
-    if (atStart.soundEnabled && name) playSound(name);
-  }, [atStart]);
-  const exit = () => {
-    sound(`${TITLE} Exit`);
-    onExit();
-  };
+  const exit = useStartExit(TITLE, settings, onExit);
 
   const drop = (from: { x: number; y: number }, to: { x: number; y: number } | null) => {
     const result = to && jump(game, from, to);
@@ -86,7 +74,7 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
     if (outcome === 'stuck') {
       // A score layout with no jump left: the Hall of Fame, else "You cannot jump any more pieces."
       const score = String(piecesLeft(result.state));
-      const place = placeOf(scores.tables[settings.layout]!, score, false);
+      const place = placeOf(tableOf(scores, settings.layout), score, true);
       setOpen(place >= 0 ? { highScore: score, place } : 'noMoreJumps');
     } else if (outcome) {
       setOpen({ ending: outcome });
@@ -117,7 +105,6 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
     setOpen(null);
   };
 
-  const background = BACKGROUNDS[settings.background];
   return (
     <Window
       title={title}
@@ -146,18 +133,12 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
         },
       ]}
     >
-      <div
-        className="playfield"
-        style={{
-          backgroundColor: background?.color,
-          backgroundImage: background?.texture && `url(${background.texture})`,
-        }}
-      >
+      <div className="playfield" style={backgroundStyle(settings.background)}>
         <Board
           state={game}
           text={layout.text}
           preview={PREVIEWS[settings.layout]!}
-          pieceSet={PIECE_SETS[settings.pieceSet]!.src}
+          pieceSet={settings.pieceSet}
           boardSet={settings.boardSet}
           dragBitmaps={settings.dragBitmaps}
           showDragZones={settings.showDragZones}
@@ -178,46 +159,33 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
       )}
 
       {open !== null && typeof open === 'object' && 'restart' in open && (
-        <Dialog
+        <ConfirmBox
           title={title}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => apply(open.restart) },
-            { label: '~No', cancel: true, onClick: () => setOpen('options') },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => apply(open.restart)}
+          onNo={() => setOpen('options')}
+        />
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title={title}
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                newGame();
-                setOpen(null);
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            newGame();
+            setOpen(null);
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'noMoreJumps' && (
-        <Dialog title={title} buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}>
-          <p className="message info">You cannot jump any more pieces.</p>
-        </Dialog>
+        <MessageBox title={title} icon="info" text="You cannot jump any more pieces." onOk={() => setOpen(null)} />
       )}
 
       {open !== null && typeof open === 'object' && 'ending' in open && (
-        <OutcomeDialog
+        <EndDialog
+          title={TITLE}
           outcome={ENDINGS[open.ending].outcome}
           lines={ENDINGS[open.ending].lines}
           onOk={() => setOpen(null)}
@@ -225,59 +193,34 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'scores' && (
-        <HallOfFameDialog
+        <HallOfFame
           title={`Hall of Fame - ${layout.name}`}
-          table={scores.tables[settings.layout]!}
-          onClear={() =>
-            setScores({ ...scores, tables: scores.tables.map((t, i) => (i === settings.layout ? [] : t)) })
-          }
+          table={tableOf(scores, settings.layout)}
+          onClear={() => setScores(cleared(scores, settings.layout))}
           onClose={() => setOpen(null)}
         />
       )}
 
       {open !== null && typeof open === 'object' && 'highScore' in open && (
-        <HighScoreDialog
-          name={scores.playerName}
+        <NewHighScore
+          name={scores.player}
           onOk={(name) => {
-            const tables = [...scores.tables];
-            tables[settings.layout] = insert(tables[settings.layout]!, open.place, { name, score: open.highScore });
-            setScores({ tables, playerName: name });
+            setScores(record(scores, settings.layout, open.place, name, open.highScore));
             setOpen(null);
           }}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Pegopolis"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>Keyboard: F2 starts a new game. On a touch screen, drag the pieces with a finger.</p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Pegopolis"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Keyboard: F2 starts a new game. On a touch screen, drag the pieces with a finger."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Pegopolis"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>Pegopolis copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Pegopolis" onClose={() => setOpen(null)} />}
     </Window>
   );
 }

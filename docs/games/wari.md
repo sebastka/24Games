@@ -65,10 +65,11 @@ below the computer's, inside the goals.
   ± 1000 when a goal holds more than `6 × field` pieces. That field (offset 8 of the player
   object at window + 0x2fc) is never set: the window object is on the stack, and under Wine it
   holds 0x004101f4 (read with winedbg), so the bonus never applies.
-- **Budget per skill**: the table is read at `0x412298 + 2 × '1'…'4'` (the digit's character
-  code, not its value) and gives 130 (Easy), 195 (Moderate), 64000 (Difficult) and 47408
-  (Expert: past the table, the low half of the next code pointer). Difficult thus searches more
-  than Expert. The root divides the budget by its number of moves; with a single move it plays
+- **Budget per skill**: the table at `0x4122f8` is 65, 130, 195, 64000 (Easy to Expert), but
+  it is read at `0x412298 + 2 × '1'…'4'` (the digit's character code, not its value), one entry
+  too far: 130 (Easy), 195 (Moderate), 64000 (Difficult) and 47408 (Expert: past the table, the
+  low half of the next code pointer). Difficult thus searches more than Expert. **Fixed** in the
+  web version (see the deviations). The root divides the budget by its number of moves; with a single move it plays
   it at once.
 - Deterministic: no randomness. Verified against the original under Wine (computer first, 3
   and 4 pieces per pit, Easy to Difficult): same opening moves.
@@ -102,7 +103,13 @@ below the computer's, inside the goals.
 
 ## Deviations from the original
 
-- Animation steps are timed (3 ms per step) instead of the original's processor-calibrated busy
+- **Fixed: the skill levels.** The search budgets are the table the original meant (65, 130,
+  195, 64000 nodes from Easy to Expert), so each level plays at least as well as the one below.
+  The original reads one entry too far (130, 195, 64000, 47408), which makes its Difficult
+  stronger than its Expert. The opening moves verified against Wine were with the original's
+  budgets.
+
+- Animation steps are timed (4 ms per step, as in every board game here) instead of the original's processor-calibrated busy
   loop. With animation disabled, the pieces move at once and only the last sound is heard (as
   the original's overlapping asynchronous sounds would).
 - The menus stay usable while pieces move (the original is busy): New and Options stop the move

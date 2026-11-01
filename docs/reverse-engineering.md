@@ -44,6 +44,25 @@ assets`).
   cyan, red, magenta, brown, gray, light gray, light blue…, white: the VGA palette), 16-30 are
   textures, StarView bitmaps 1100-1114 of `czgame32.dll` (`pat1.bmp`…`pat15.bmp`, Windows
   bitmaps 263-277), named in `czgame32.dll`'s strings (Gray Surface, Moo Cow, Psychedelic…).
+- **Defaults from the help id**: when the registry has no value, the framework reads a game's
+  default looks from its main window's help id (`Window::GetHelpId`; `FUN_004014d0`,
+  `FUN_00408450`, `FUN_00408d90` in reversi.exe): the hundreds are the background (2915 / 100 =
+  29, Blue Swirl), the tens the board or the card back (reversi.exe's 1632: board 3, Beveled),
+  the units the piece set or the card face set (1632 % 10 = 2, Chips). Each game's id is in its
+  `docs/games/<game>.md`; in the web version, `defaults(helpId, …)` in
+  [src/shell/czgame/settings.ts](../src/shell/czgame/settings.ts) for the board games,
+  `lookFromHelpId` in [src/shell/cards/draw.ts](../src/shell/cards/draw.ts) for the card games,
+  the games' `settings.ts` otherwise.
+- **Sound events**: every game registers "<Title> Start" and "<Title> Exit" first, without a
+  default sound, then its own events with their defaults (bulldoze.exe `FUN_00403ff0`). Start
+  plays just before the window shows, Exit in the close handler (`FUN_00404ac0`), with
+  `sndPlaySound(…, SND_ASYNC | SND_NODEFAULT)`.
+- **Dialogs and message boxes of CZGAME32.DLL**, the same in every game: 1000 "Changing the game
+  options will restart the game in progress…", 1001 "Are you sure you want to abandon the game
+  in progress?", 3000 "Are you sure you want to clear the scores in the high score table?"
+  (WarningBoxes, Yes/No); dialogs 1002-1004 "You Lose!", "You Win!", "It's A Tie!" (no title
+  bar, a 120×200 hand, OK under the texts); 3000 the Hall of Fame, 3001 "Enter your high score".
+  See [reversi.md](games/reversi.md) and [stackblz.md](games/stackblz.md).
 - StarView bitmap resources (type 275) hold the original file name and, at byte 10, the index of
   the Windows bitmap: 256 + that byte.
 - **Sprites** are bitmaps of twice their size: the image, then its mask (white = transparent)

@@ -1,0 +1,104 @@
+/* The high score dialogs (HallOfFame.tsx). */
+
+/* Hall of Fame (CZGAME32 dialog 3000): 362×318, the flag under ten staggered rows, the buttons
+   over the flag's foot. */
+.hall-of-fame .dialog-body {
+  padding: 0;
+}
+
+.hall-of-fame .flag {
+  position: relative;
+  width: 362px;
+  height: 318px;
+  max-width: 100%;
+  overflow: hidden;
+  font:
+    13px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.hall-of-fame .picture {
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  image-rendering: pixelated;
+}
+
+.hall-of-fame .row {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+  height: 18px;
+}
+
+.hall-of-fame .row span {
+  box-sizing: border-box;
+  height: 18px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  text-align: center;
+  line-height: 16px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.hall-of-fame .rank {
+  width: 18px;
+}
+
+.hall-of-fame .name {
+  width: 160px;
+}
+
+.hall-of-fame .score {
+  width: 60px;
+}
+
+.hall-of-fame .buttons {
+  position: absolute;
+  left: 50px;
+  top: 284px;
+  display: flex;
+  gap: 81px;
+}
+
+.hall-of-fame .buttons button {
+  width: 89px;
+  min-width: 0;
+  padding: 3px 0;
+}
+
+/* "Enter your high score" (CZGAME32 dialog 3001) */
+.new-high-score .ribbons {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: center;
+}
+
+.new-high-score .ribbons canvas {
+  flex: none;
+  image-rendering: pixelated;
+}
+
+.new-high-score .congratulations {
+  margin: 0 0 6px;
+  color: #800000;
+  font:
+    bold 24px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+.new-high-score input[type='text'] {
+  display: block;
+  width: 185px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.new-high-score .dialog-buttons {
+  justify-content: center;
+}

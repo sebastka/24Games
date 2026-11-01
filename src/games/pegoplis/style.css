@@ -15,19 +15,3 @@
   image-rendering: pixelated;
   touch-action: none;
 }
-
-.pegoplis-sets {
-  justify-content: center;
-}
-
-.pegoplis-sets .preview {
-  margin: 12px 24px;
-}
-
-/* The InfoBox icon (the shell has warning and error ones only). */
-.game.pegoplis .message.info::before {
-  content: 'i';
-  background: #0000ff;
-  color: var(--light);
-  font-style: italic;
-}

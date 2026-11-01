@@ -1,18 +1,17 @@
+import { DEFAULT_SPEED } from '../../shell/czgame/animate.ts';
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { DEFAULT_SPEED } from '../wari/czgame.ts';
 
 /** Sound events, with the original's defaults (pushpull.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Push-Pull Start': '',
-  'Push-Pull Exit': '',
+export const SOUND_EVENTS = soundEvents('Push-Pull', {
   'Move Marker': 'boing_1',
   "Capture Player's Piece": 'baby_lf1',
   "Capture Computer's Piece": 'laugh_1',
   Victory: 'crowd_4',
   Defeat: 'crowd_1',
   Tie: 'stopwach',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

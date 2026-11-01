@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import logoUrl from '../../assets/wari/logo.png';
-import codezone from '../../assets/shared/codezone.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle, useFitScale, useImage } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { animate as glide, type Point } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, inside } from '../../shell/czgame/draw.ts';
+import { usePieces } from '../../shell/czgame/pieces.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { counterRect, HEIGHT, MESSAGE, piecePosition, pitRect, WIDTH } from './board.ts';
-import { backgroundStyle, bevel, centeredText, glide, inside, usePieces, type Outcome } from './czgame.ts';
-import { AboutText, EndDialog } from './czgame.tsx';
 import {
   computerMove,
   isOver,
@@ -32,11 +34,6 @@ const BROWN = '#808000';
 const YELLOW = '#ffff00';
 const BLACK = '#000000';
 
-interface Point {
-  x: number;
-  y: number;
-}
-
 /** What the canvas shows: the pieces where they lie, the one in flight, the message. */
 interface View {
   board: Board;
@@ -57,13 +54,9 @@ function draw(ctx: CanvasRenderingContext2D, view: View, logo: HTMLImageElement 
   if (logo) ctx.drawImage(logo, (WIDTH - logo.width) >> 1, (HEIGHT - logo.height) >> 1);
   for (let pit = 0; pit < PITS; pit++) {
     const r = pitRect(pit);
-    bevel(ctx, { left: r.left - 2, top: r.top - 2, right: r.right + 2, bottom: r.bottom + 2 }, 2, BROWN, [
-      YELLOW,
-      BLACK,
-      YELLOW,
-      BLACK,
-    ]);
-    bevel(ctx, r, 2, BROWN, [BLACK, YELLOW, BLACK, YELLOW]);
+    const outer = { left: r.left - 2, top: r.top - 2, right: r.right + 2, bottom: r.bottom + 2 };
+    bevel(ctx, outer, 2, BROWN, { top: YELLOW, right: BLACK, bottom: BLACK, left: YELLOW });
+    bevel(ctx, r, 2, BROWN, { top: BLACK, right: YELLOW, bottom: YELLOW, left: BLACK });
     for (const p of view.pieces[pit]!) ctx.drawImage(piece, p.x, p.y);
     const c = counterRect(pit);
     ctx.fillStyle = BLACK;
@@ -73,17 +66,17 @@ function draw(ctx: CanvasRenderingContext2D, view: View, logo: HTMLImageElement 
     ctx.strokeRect(c.left + 0.5, c.top + 0.5, c.right - c.left, c.bottom - c.top);
     ctx.fillStyle = YELLOW;
     ctx.font = 'bold 20px Arial, Helvetica, sans-serif';
-    centeredText(ctx, c, String(view.board[pit]));
+    centeredText(ctx, String(view.board[pit]), c, { dy: 1 });
   }
   if (view.flying) ctx.drawImage(piece, view.flying.x, view.flying.y);
   if (view.message) {
-    bevel(ctx, MESSAGE, 2, '#c0c0c0', ['#ffffff', '#808080', '#ffffff', '#808080']);
+    bevel(ctx, MESSAGE, 2);
     const [first, second] = MESSAGES[view.message];
     const middle = (MESSAGE.top + MESSAGE.bottom) >> 1;
     ctx.fillStyle = '#000080';
     ctx.font = 'bold 16px Arial, Helvetica, sans-serif';
-    centeredText(ctx, { ...MESSAGE, bottom: middle }, first!);
-    centeredText(ctx, { ...MESSAGE, top: middle + 1 }, second!);
+    centeredText(ctx, first!, { ...MESSAGE, bottom: middle }, { dy: 1 });
+    centeredText(ctx, second!, { ...MESSAGE, top: middle + 1 }, { dy: 1 });
   }
 }
 
@@ -125,11 +118,7 @@ export default function Wari({ onExit }: { onExit: () => void }) {
   });
   const paint = () => latestRedraw.current();
 
-  const sound = (event: SoundEvent) => {
-    const s = settingsRef.current;
-    const name = s.sounds[event];
-    if (s.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settingsRef.current, event);
 
   /** Moves the pieces of a move one by one, with their sounds (`FUN_00409f30`). */
   const animate = async (transfers: Transfer[], generationAtStart: number) => {
@@ -160,10 +149,10 @@ export default function Wari({ onExit }: { onExit: () => void }) {
     const mine = `My Score : ${computer}`;
     if (player < computer) {
       sound('Defeat');
-      setEnd({ outcome: 'computer', lines: [mine, yours] });
+      setEnd({ outcome: 'lose', lines: [mine, yours] });
     } else if (computer < player) {
       sound('Victory');
-      setEnd({ outcome: 'player', lines: [yours, mine] });
+      setEnd({ outcome: 'win', lines: [yours, mine] });
     } else {
       sound('Tie');
       setEnd({ outcome: 'tie', lines: [yours, mine] });
@@ -221,19 +210,14 @@ export default function Wari({ onExit }: { onExit: () => void }) {
     if (!s.playerFirst) void turn(PLAYER_GOAL);
   };
 
-  // A first game at start, and the "Wari Start" sound.
+  // A first game at start, after the "Wari Start" sound.
+  const exit = useStartExit('Wari', settings, onExit);
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    sound('Wari Start');
     newGame();
   });
-
-  const exit = () => {
-    sound('Wari Exit');
-    onExit();
-  };
 
   /** Game › New (F2): asks first during a game. */
   const askNewGame = () => (inProgress ? setOpen('abandon') : newGame());
@@ -333,52 +317,29 @@ export default function Wari({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title="Wari"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                newGame();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            newGame();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Wari"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>Keyboard: 1 to 6 play your pits, from the left.</p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Wari"
+          info={INFO}
+          controls="Keyboard: 1 to 6 play your pits, from the left."
+          onClose={() => setOpen(null)}
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Wari"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <AboutText title="Wari" />
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Wari" onClose={() => setOpen(null)} />}
 
-      {end && <EndDialog outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
+      {end && <EndDialog title="Wari" outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
     </Window>
   );
 }

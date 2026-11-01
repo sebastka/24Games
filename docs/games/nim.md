@@ -38,7 +38,8 @@ size; when pieces are taken their squares stay (empty), so the board keeps its i
   shown in the status line ("Computer takes …") until the next choice.
 - **End** (`FUN_004044a4`): with "Take the Last Piece", when no piece is left; with "Leave the
   Last Piece", when exactly one piece is left (the side to move must take it). The winner is the
-  side that just moved: "You Win!" (Victory) or "You Lose!" (Defeat), with the texts above.
+  side that just moved (in the web version, also when it took every remaining piece with "Leave
+  the Last Piece", which then loses it: see the deviations): "You Win!" (Victory) or "You Lose!" (Defeat), with the texts above.
   The status line then says "Press F2 to begin a new game".
 - **New game**: the piles of the options; with "Computer Goes First" the computer moves at once
   (the original passes a dummy row 10 to the take function to skip the player's part).
@@ -76,8 +77,9 @@ size; when pieces are taken their squares stay (empty), so the board keeps its i
 
 - Key G is ignored. In the original it chooses a non-existent seventh row, which reads (and,
   once taken, decrements) the first pile size of the options.
-- With "Leave the Last Piece", taking every remaining piece is not seen as the end of the game,
-  in the original as here: the computer then "takes 0 piece from row A" and the game cannot go
-  on until Game › New.
+- **Fixed: taking every remaining piece with "Leave the Last Piece".** It ends the game, lost by
+  whoever took them (they took the last piece). The original does not see it as the end
+  (`FUN_004044a4` only checks for a single piece left): the computer then "takes 0 piece from row
+  A" and the game cannot go on until Game › New.
 - The mouse pointer does not change over the board (the original shows `plus.cur`).
 - Animation timing, the menus during moves, the Help menu, system colours: as Wari's.

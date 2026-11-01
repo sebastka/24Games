@@ -2,19 +2,19 @@ import { useEffect, useState } from 'react';
 import levels from '../../assets/bulldoze/levels.json';
 import piecesColor from '../../assets/bulldoze/pieces-color.png';
 import piecesMono from '../../assets/bulldoze/pieces-mono.png';
-import codezone from '../../assets/shared/codezone.png';
 import { BACKGROUNDS } from '../../shell/backgrounds.ts';
 import { gameById } from '../../shell/catalog.ts';
 import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { TouchPad } from '../../shell/TouchPad.tsx';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
 import { canUndo, isComplete, move, parseLevel, start, undo, type Direction, type MoveEvent } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
 import { completion, END_SCREEN, type Completion } from './progress.ts';
-import './style.css';
 import { loadSettings, saveSettings, type Settings, type SoundEvent } from './settings.ts';
+import './style.css';
 
 const SHEETS = [piecesColor, piecesMono];
 const INFO = gameById('bulldoze')!;
@@ -52,12 +52,10 @@ export default function Bulldozer({ onExit }: { onExit: () => void }) {
   const [open, setOpen] = useState<Open>(null);
   const { level } = settings;
 
+  const exit = useStartExit('Bulldozer', settings, onExit);
   useEffect(() => saveSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent | null) => {
-    const name = event && settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent | null) => event && playEvent(settings, event);
 
   const act = (direction: Direction) => {
     if (open || isComplete(game)) return;
@@ -104,7 +102,7 @@ export default function Bulldozer({ onExit }: { onExit: () => void }) {
     <Window
       title={`Bulldozer - Level ${level}`}
       icon={INFO.smallIcon}
-      onClose={onExit}
+      onClose={exit}
       className="game bulldozer"
       menus={[
         {
@@ -115,7 +113,7 @@ export default function Bulldozer({ onExit }: { onExit: () => void }) {
             { separator: true },
             { label: '~Options...', onSelect: () => setOpen('options') },
             { separator: true },
-            { label: 'E~xit', onSelect: onExit },
+            { label: 'E~xit', onSelect: exit },
           ],
         },
         {
@@ -158,39 +156,15 @@ export default function Bulldozer({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Bulldozer"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Keyboard: arrow keys to move, F2 to restart the level, Ctrl+Z to undo the last push. On a touch screen,
-              swipe on the play field or use the buttons below it.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Bulldozer"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Keyboard: arrow keys to move, F2 to restart the level, Ctrl+Z to undo the last push. On a touch screen, swipe on the play field or use the buttons below it."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Bulldozer"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>Bulldozer copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Bulldozer" onClose={() => setOpen(null)} />}
 
       {open !== null && typeof open === 'object' && (
         <CompletionDialog completed={open.completed} completion={open.completion} onOk={nextLevel} />

@@ -6,6 +6,7 @@ import {
   DEFAULT_PILES,
   endLines,
   isOver,
+  winner,
   isZero,
   selectionText,
   take,
@@ -26,8 +27,12 @@ test('end of game: no piece left, or a single piece left when it must be left', 
   assert.ok(isOver([0, 0, 1, 0, 0, 0], false));
   assert.ok(!isOver([0, 1, 1, 0, 0, 0], false));
   assert.ok(!isOver([0, 0, 2, 0, 0, 0], false));
-  // Taking everything in "Leave the Last Piece" goes unnoticed, as in the original.
-  assert.ok(!isOver([0, 0, 0, 0, 0, 0], false));
+  // Taking every remaining piece ends the game too: the mover took the last piece and loses.
+  assert.ok(isOver([0, 0, 0, 0, 0, 0], false));
+  assert.equal(winner([0, 0, 0, 0, 0, 0], false), 'other');
+  assert.equal(winner([0, 0, 0, 0, 0, 0], true), 'mover');
+  assert.equal(winner([0, 0, 1, 0, 0, 0], false), 'mover');
+  assert.equal(winner([0, 1, 1, 0, 0, 0], false), null);
 });
 
 test('nim-sum', () => {

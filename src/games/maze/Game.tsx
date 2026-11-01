@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { isKey } from '../../shell/keys.ts';
+import { useFixedStep } from '../../shell/loop.ts';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { TouchPad } from '../../shell/TouchPad.tsx';
 import { Window } from '../../shell/Window.tsx';
-import { isKey } from '../cheesy/common/keys.ts';
-import { useFixedStep } from '../cheesy/common/loop.ts';
-import '../cheesy/common/style.css';
 import { Field } from './Field.tsx';
 import { COMPUTER_MS, move, newMaze, wayOf, type Direction, type Sound, type State } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
-import './style.css';
 import { loadSettings, saveSettings, type Action, type Settings, type SoundEvent } from './settings.ts';
 import { WinDialog } from './WinDialog.tsx';
+import '../../shell/arcade.css';
+import './style.css';
 
 const INFO = gameById('maze')!;
 const TITLE = 'MazeRace';
@@ -28,6 +28,7 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
   /** The maze shown is new: the next race is run on it (the original's 0x13f). */
   const fresh = useRef(true);
   const [open, setOpen] = useState<Open>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const setGame = (state: State) => {
     current.current = state;
@@ -36,22 +37,9 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
 
   useEffect(() => saveSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
   const sounds = (list: Sound[]) => list.forEach(sound);
-
-  useEffect(() => {
-    const s = loadSettings();
-    const name = s.sounds['MazeRace Start'];
-    if (s.soundEnabled && name) playSound(name);
-  }, []);
-
-  const exit = () => {
-    sound('MazeRace Exit');
-    onExit();
-  };
+  const exit = useStartExit(TITLE, settings, onExit);
 
   const step = (index: 0 | 1, d: Direction) => {
     const result = move(current.current, index, d, random);
@@ -62,7 +50,7 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
 
   // Nestor, played by the computer: one step along the way to the cheese per tick.
   const computer = settings.skill > 0;
-  useFixedStep(COMPUTER_MS[settings.skill - 1] ?? 800, computer && game.active && open === null, () =>
+  useFixedStep(COMPUTER_MS[settings.skill - 1] ?? 800, computer && game.active && open === null && !menuOpen, () =>
     step(1, wayOf(current.current, current.current.mice[1])),
   );
 
@@ -99,6 +87,7 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
       title={TITLE}
       icon={INFO.smallIcon}
       onClose={exit}
+      onMenuChange={setMenuOpen}
       className="game arcade maze"
       menus={[
         {
@@ -141,22 +130,15 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'confirm-new' && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                begin();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            begin();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open !== null && typeof open === 'object' && (
@@ -164,40 +146,15 @@ export default function MazeRace({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Keyboard: F2 starts a race. Hector (white) moves with the arrow keys; Nestor (brown), with two players,
-              with W, A, D and X (Options › Keys changes them). On a touch screen, swipe on the maze or use the buttons
-              below it to move Hector.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Keyboard: F2 starts a race. Hector (white) moves with the arrow keys; Nestor (brown), with two players, with W, A, D and X (Options › Keys changes them). On a touch screen, swipe on the maze or use the buttons below it to move Hector."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }

@@ -15,30 +15,3 @@
   image-rendering: pixelated;
   touch-action: none;
 }
-
-.player-keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-}
-
-.player-keys > div {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.player-keys .rotations {
-  padding-top: 16px;
-}
-
-.player-keys label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.player-keys select {
-  width: 80px;
-}

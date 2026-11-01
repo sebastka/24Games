@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameProps } from '../index.ts';
+import { CONFIRM_NEW, ConfirmBox, MessageBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { pause, useTurns } from '../../shell/czgame/turns.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { msvcRand, type Rand } from '../../shell/random.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
 import { HOME, pieceAt } from './layout.ts';
@@ -12,23 +18,16 @@ import {
   flips,
   hasMove,
   isLegal,
-  msvcRand,
   play,
   PLAYER,
   startBoard,
   type Board as Squares,
-  type Rand,
   type Side,
 } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
-import { animate, type Point } from './shared/animate.ts';
-import { CONFIRM_NEW, ConfirmBox, MessageBox } from './shared/Boxes.tsx';
-import { EndDialog, type Outcome } from './shared/EndDialog.tsx';
-import { AboutDialog, RulesDialog } from './shared/HelpDialogs.tsx';
-import { pause, useTurns } from './shared/turns.ts';
-import './shared/style.css';
-import './style.css';
 import { loadReversiSettings, saveReversiSettings, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/czgame/style.css';
+import './style.css';
 
 const INFO = gameById('reversi')!;
 const TITLE = 'Reversi Plus';
@@ -60,11 +59,7 @@ export default function ReversiPlus({ onExit }: GameProps) {
 
   useEffect(() => saveReversiSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const { soundEnabled, sounds } = current.current.settings;
-    const name = sounds[event];
-    if (soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(current.current.settings, event);
 
   const commit = (next: Squares) => {
     current.current.squares = next;
@@ -144,8 +139,8 @@ export default function ReversiPlus({ onExit }: GameProps) {
     if (!s.playerFirst) run(computerTurn);
   };
 
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound('Reversi Plus Start');
     if (!current.current.settings.playerFirst) newGame();
     // Once, when the window opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -175,11 +170,6 @@ export default function ReversiPlus({ onExit }: GameProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
-
-  const exit = () => {
-    sound('Reversi Plus Exit');
-    onExit();
-  };
 
   const close = () => setModal(null);
   const resolve = () => {
@@ -252,15 +242,14 @@ export default function ReversiPlus({ onExit }: GameProps) {
 
       {modal?.kind === 'pass' && (
         <MessageBox
+          icon="info"
           title={modal.side === COMPUTER ? 'Computer Must Pass' : 'Player Must Pass'}
           text={modal.side === COMPUTER ? 'I have no moves available.' : 'You have no moves available.'}
           onOk={resolve}
         />
       )}
 
-      {modal?.kind === 'end' && (
-        <EndDialog title={TITLE} outcome={modal.outcome} lines={modal.lines} onClose={resolve} />
-      )}
+      {modal?.kind === 'end' && <EndDialog title={TITLE} outcome={modal.outcome} lines={modal.lines} onOk={resolve} />}
 
       {modal?.kind === 'rules' && (
         <RulesDialog

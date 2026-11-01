@@ -13,7 +13,6 @@ import {
   step,
   type State,
 } from '../src/games/cheesy/logic.ts';
-import { insert, placeOf, emptyTable } from '../src/games/cheesy/common/highscores.ts';
 
 /** A random function replaying `values` (then 0.5). */
 const replay =
@@ -169,17 +168,4 @@ test('a cat on the mouse catches it; the mouse is lost', () => {
   assert.equal(move(over, 'up').state, over, 'no more moves after the last mouse');
   // One pixel further right: no catch.
   assert.equal(step({ ...s, cats: [{ x: 3 * 40 + 4 + 32, y: 80, vx: 0, vy: 0 }] }, plain).caught, null);
-});
-
-test('high scores: higher first, ties below, ten places', () => {
-  let t = emptyTable();
-  assert.equal(placeOf(t, 0), 0);
-  t = insert(t, 0, { name: 'A', score: 50 });
-  assert.equal(placeOf(t, 50), 1);
-  assert.equal(placeOf(t, 60), 0);
-  for (let i = 0; i < 9; i++) t = insert(t, placeOf(t, 10), { name: 'B', score: 10 });
-  assert.equal(t.length, 10);
-  assert.equal(placeOf(t, 10), -1);
-  assert.equal(placeOf(t, 11), 1);
-  assert.equal(placeOf(t, 5, true), 0);
 });

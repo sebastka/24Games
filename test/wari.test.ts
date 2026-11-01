@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   BUDGETS,
+  ORIGINAL_BUDGETS,
   computerMove,
   isOver,
   newBoard,
@@ -70,7 +71,7 @@ test('the game ends when a row is empty; each side keeps its row', () => {
 });
 
 test('skill budgets as the original reads them; the ±1000 threshold never applies', () => {
-  assert.deepEqual(BUDGETS, [130, 195, 64000, 47408]);
+  assert.deepEqual(BUDGETS, [65, 130, 195, 64000]);
   assert.ok(THRESHOLD > 72);
 });
 
@@ -78,16 +79,22 @@ test('the computer plays its only pit', () => {
   assert.equal(computerMove(board([3, 3, 3, 3, 3, 3], 0, [0, 0, 0, 2, 0, 0], 0), 4), 10);
 });
 
-test("the computer's openings match the original's (Wine, computer first)", () => {
+test("with the original's budgets, the computer's openings match the original's (Wine, computer first)", () => {
   // Observed: 3 per pit: Easy plays 12, Moderate 11, Difficult 10 then 12; 4 per pit, Moderate 9.
+  const original = (b: Parameters<typeof computerMove>[0], skill: number) =>
+    computerMove(b, skill, THRESHOLD, ORIGINAL_BUDGETS);
   const three = newBoard(3, Math.random);
-  assert.equal(computerMove(three, 1), 12);
-  assert.equal(computerMove(three, 2), 11);
-  assert.equal(computerMove(three, 3), 10);
+  assert.equal(original(three, 1), 12);
+  assert.equal(original(three, 2), 11);
+  assert.equal(original(three, 3), 10);
   const after = play(three, 10);
   assert.ok(after.extraTurn);
-  assert.equal(computerMove(after.board, 3), 12);
-  assert.equal(computerMove(newBoard(4, Math.random), 2), 9);
+  assert.equal(original(after.board, 3), 12);
+  assert.equal(original(newBoard(4, Math.random), 2), 9);
+});
+
+test('the fixed budgets grow with the skill level', () => {
+  assert.ok(BUDGETS.every((b, i) => i === 0 || b > BUDGETS[i - 1]!));
 });
 
 test('the computer takes an extra turn and a capture when it can', () => {

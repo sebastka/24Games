@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ConfirmBox, MessageBox } from '../../shell/Boxes.tsx';
 import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { TILE } from './Board.tsx';
@@ -117,22 +118,15 @@ export function OptionsDialog(props: {
       </Dialog>
 
       {prompt?.kind === 'confirm-level-1' && (
-        <Dialog
+        <ConfirmBox
           title="Bulldozer"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setDraft({ ...draft, level: 1 });
-                setPrompt(null);
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setPrompt(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to return to level 1?</p>
-        </Dialog>
+          text="Are you sure you want to return to level 1?"
+          onYes={() => {
+            setDraft({ ...draft, level: 1 });
+            setPrompt(null);
+          }}
+          onNo={() => setPrompt(null)}
+        />
       )}
 
       {prompt?.kind === 'password' && (
@@ -154,6 +148,7 @@ export function OptionsDialog(props: {
           <p>Please enter the password for level {prompt.level}.</p>
           <input
             type="text"
+            className="bulldozer-password"
             aria-label="Password"
             maxLength={8}
             autoComplete="off"
@@ -166,12 +161,12 @@ export function OptionsDialog(props: {
       )}
 
       {prompt?.kind === 'wrong-password' && (
-        <Dialog
+        <MessageBox
           title="Bulldozer"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setPrompt(null) }]}
-        >
-          <p className="message error">Sorry, you did not enter the correct password.</p>
-        </Dialog>
+          icon="error"
+          text="Sorry, you did not enter the correct password."
+          onOk={() => setPrompt(null)}
+        />
       )}
     </>
   );

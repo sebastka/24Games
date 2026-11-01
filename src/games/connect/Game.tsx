@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { GameProps } from '../index.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { pause, useTurns } from '../../shell/czgame/turns.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { msvcRand, type Rand } from '../../shell/random.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { msvcRand, type Rand } from '../reversi/logic.ts';
-import { animate, type Point } from '../reversi/shared/animate.ts';
-import { CONFIRM_NEW, ConfirmBox } from '../reversi/shared/Boxes.tsx';
-import { EndDialog, type Outcome } from '../reversi/shared/EndDialog.tsx';
-import { AboutDialog, RulesDialog } from '../reversi/shared/HelpDialogs.tsx';
-import '../reversi/shared/style.css';
-import { pause, useTurns } from '../reversi/shared/turns.ts';
 import { Board } from './Board.tsx';
 import { dropFrom, pieceAt } from './layout.ts';
 import {
@@ -28,6 +27,7 @@ import {
 } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
 import { loadConnectSettings, saveConnectSettings, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/czgame/style.css';
 import './style.css';
 
 const INFO = gameById('connect')!;
@@ -66,11 +66,7 @@ export default function CheckerConnector({ onExit }: GameProps) {
 
   useEffect(() => saveConnectSettings(settings), [settings]);
 
-  const sound = (event: SoundEvent) => {
-    const { soundEnabled, sounds } = current.current.settings;
-    const name = sounds[event];
-    if (soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(current.current.settings, event);
 
   const commit = (next: Position) => {
     current.current.position = next;
@@ -137,8 +133,8 @@ export default function CheckerConnector({ onExit }: GameProps) {
     }
   };
 
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound('Checker Connector Start');
     if (!current.current.settings.playerFirst) newGame();
     // Once, when the window opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,11 +160,6 @@ export default function CheckerConnector({ onExit }: GameProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
-
-  const exit = () => {
-    sound('Checker Connector Exit');
-    onExit();
-  };
 
   const close = () => setModal(null);
 
@@ -240,7 +231,7 @@ export default function CheckerConnector({ onExit }: GameProps) {
           title={TITLE}
           outcome={modal.outcome}
           lines={modal.lines}
-          onClose={() => {
+          onOk={() => {
             modal.resolve();
             close();
           }}

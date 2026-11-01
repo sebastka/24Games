@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { HallOfFame, NewHighScore } from '../../shell/cards/HighScores.tsx';
-import { insertScore, placeOf } from '../../shell/cards/scores.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf as scoreTable } from '../../shell/highscores.ts';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
 import { OptionsDialog, ScoreDialog } from './Dialogs.tsx';
@@ -12,7 +12,8 @@ import { CELLS, deal, isOver, place, score, tableOf, type State } from './logic.
 import { loadSettings, saveSettings, TITLE, type Settings, type SoundEvent } from './settings.ts';
 import './style.css';
 
-const INFO = gameById('pokergrd')!;
+const ID = 'pokergrd';
+const INFO = gameById(ID)!;
 
 type Open = 'options' | 'new' | 'score' | 'final-score' | { name: number } | 'high-scores' | 'rules' | 'about' | null;
 
@@ -23,16 +24,17 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
   const over = isOver(game);
   const table = tableOf(settings);
 
-  useEffect(() => saveSettings(settings), [settings]);
+  // The four high score tables, by variant (kept with the settings before).
+  const [scores, setScores] = useState(() => loadScores(ID, ID));
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  useEffect(() => saveSettings(settings), [settings]);
+  useEffect(() => saveScores(ID, scores), [scores]);
+
+  const sound = (event: SoundEvent) => playEvent(settings, event);
 
   // The original plays "<title> Start" when its window opens, then "Deal Cards" for the first deal.
+  const exit = useStartExit(TITLE, settings, onExit);
   useEffect(() => {
-    sound(`${TITLE} Start`);
     sound('Deal Cards');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -41,11 +43,6 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
     setGame(deal(s, Math.random));
     sound('Deal Cards');
     setOpen(null);
-  };
-
-  const exit = () => {
-    sound(`${TITLE} Exit`);
-    onExit();
   };
 
   /** FUN_00405a11: a card into a cell; the 25th ends the game. */
@@ -61,8 +58,8 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
 
   /** After the final score: a name for the high score table, if the score enters it. */
   const afterScore = () => {
-    const at = placeOf(settings.scores[table] ?? [], score(game).total);
-    setOpen(at === null ? null : { name: at });
+    const at = placeOf(scoreTable(scores, table), score(game).total);
+    setOpen(at < 0 ? null : { name: at });
   };
 
   useEffect(() => {
@@ -144,15 +141,7 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'new' && (
-        <Dialog
-          title={TITLE}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => newGame() },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+        <ConfirmBox title={TITLE} text={CONFIRM_NEW} onYes={() => newGame()} onNo={() => setOpen(null)} />
       )}
 
       {(open === 'score' || open === 'final-score') && final && (
@@ -161,11 +150,9 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
 
       {open !== null && typeof open === 'object' && final && (
         <NewHighScore
-          name={settings.playerName}
+          name={scores.player}
           onOk={(name) => {
-            const scores = [...settings.scores];
-            scores[table] = insertScore(scores[table] ?? [], open.name, { name, score: final.total });
-            setSettings({ ...settings, scores, playerName: name });
+            setScores(record(scores, table, open.name, name, final.total));
             setOpen(null);
           }}
         />
@@ -173,55 +160,34 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
 
       {open === 'high-scores' && (
         <HallOfFame
-          title={TITLE}
-          table={settings.scores[table] ?? []}
-          onClear={() => {
-            const scores = [...settings.scores];
-            scores[table] = [];
-            setSettings({ ...settings, scores });
-          }}
+          title="Hall of Fame"
+          table={scoreTable(scores, table)}
+          onClear={() => setScores(cleared(scores, table))}
           onClose={() => setOpen(null)}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Each row and each column scores its poker hand: pair 1, two pair 3, flush 5, three of a kind 6, full house
-              10, straight 12, four of a kind 16, straight flush 30.
-            </p>
-            <p>
-              Keyboard: the letters A to Y fill their cell, the left and right arrows choose the pile, F2 starts a new
-              game. With a finger: drag a card, or tap an empty cell.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls={
+            <>
+              <p>
+                Each row and each column scores its poker hand: pair 1, two pair 3, flush 5, three of a kind 6, full
+                house 10, straight 12, four of a kind 16, straight flush 30.
+              </p>
+              <p>
+                Keyboard: the letters A to Y fill their cell, the left and right arrows choose the pile, F2 starts a new
+                game. With a finger: drag a card, or tap an empty cell.
+              </p>
+            </>
+          }
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }

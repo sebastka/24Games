@@ -1,18 +1,17 @@
+import { DEFAULT_SPEED } from '../../shell/czgame/animate.ts';
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { DEFAULT_SPEED } from '../wari/czgame.ts';
 import { DEFAULT_PILES, MAX_PILE, ROWS } from './logic.ts';
 
 /** Sound events, with the original's defaults (nim.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Nim Start': '',
-  'Nim Exit': '',
+export const SOUND_EVENTS = soundEvents('Nim', {
   'Select Pieces': 'click_2',
   'Player removes pieces': 'boing_1',
   'Computer removes pieces': 'bloup',
   Victory: 'crowd_3',
   Defeat: 'instr_2',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

@@ -1,6 +1,6 @@
 // Which layout a new game is played on (`FUN_00401b30`): the same one, a random one
 // (`rand() & 0xff`), or the next one, modulo 35.
-import type { Rand } from './logic.ts';
+import type { Rand } from '../../shell/random.ts';
 
 /** How the board changes at each new game (registry Progression: Same, Random, Sequential). */
 export type Progression = 'same' | 'random' | 'sequential';

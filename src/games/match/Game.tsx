@@ -3,15 +3,16 @@ import aliens from '../../assets/match/aliens.png';
 import back from '../../assets/match/back.png';
 import cards from '../../assets/match/cards.png';
 import found from '../../assets/match/found.png';
-import codezone from '../../assets/shared/codezone.png';
-import { BACKGROUNDS } from '../../shell/backgrounds.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { EndDialog } from '../../shell/EndDialog.tsx';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
-import { HallOfFameDialog, HighScoreDialog, OutcomeDialog } from './Dialogs.tsx';
-import { insert, loadScores, placeOf, saveScores, type Scores } from './hallOfFame.ts';
 import {
   click,
   deal,
@@ -46,7 +47,7 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState(() => deal(settings.skill));
   const [clock, setClock] = useState<Clock>(() => newClock(performance.now()));
   const [now, setNow] = useState(() => performance.now());
-  const [scores, setScores] = useState<Scores>(() => loadScores('match', 3));
+  const [scores, setScores] = useState<HighScores>(() => loadScores('match'));
   const [open, setOpen] = useState<Open>(null);
   const [hidden, setHidden] = useState(() => document.hidden);
   // Whether the clock was paused by a dialog (or a hidden tab), to be resumed after it.
@@ -56,20 +57,10 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
   useEffect(() => saveScores('match', scores), [scores]);
 
   const sound = (event: SoundEvent | null) => {
-    const name = event && settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
+    if (event) playEvent(settings, event);
   };
 
-  // "<title> Start", once (by default no sound).
-  const [atStart] = useState(settings);
-  useEffect(() => {
-    const name = atStart.sounds[`${TITLE} Start`];
-    if (atStart.soundEnabled && name) playSound(name);
-  }, [atStart]);
-  const exit = () => {
-    sound(`${TITLE} Exit`);
-    onExit();
-  };
+  const exit = useStartExit(TITLE, settings, onExit);
 
   // The original's 250 ms timer, which writes the time in the title bar.
   useEffect(() => {
@@ -129,7 +120,8 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
   };
 
   const afterVictory = (time: string) => {
-    const place = placeOf(scores.tables[settings.skill - 1]!, time, false);
+    // Times: lower is better.
+    const place = placeOf(tableOf(scores, settings.skill - 1), time, true);
     setOpen(place >= 0 ? { highScore: time, place } : null);
   };
 
@@ -143,7 +135,6 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const background = BACKGROUNDS[settings.background];
   const level = SKILLS[settings.skill];
   // The title shows the time while the clock runs; "Card Match" while the window is inactive.
   const title =
@@ -176,13 +167,7 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
         },
       ]}
     >
-      <div
-        className="playfield"
-        style={{
-          backgroundColor: background?.color,
-          backgroundImage: background?.texture && `url(${background.texture})`,
-        }}
-      >
+      <div className="playfield" style={backgroundStyle(settings.background)}>
         <Board state={game} faces={settings.skill === 3 ? aliens : cards} back={back} found={found} onClick={turn} />
       </div>
 
@@ -200,37 +185,29 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                newGame();
-                setOpen(null);
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            newGame();
+            setOpen(null);
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'scores' && (
-        <HallOfFameDialog
+        <HallOfFame
           title={`Hall of Fame - ${level}`}
-          table={scores.tables[settings.skill - 1]!}
-          onClear={() =>
-            setScores({ ...scores, tables: scores.tables.map((t, i) => (i === settings.skill - 1 ? [] : t)) })
-          }
+          table={tableOf(scores, settings.skill - 1)}
+          onClear={() => setScores(cleared(scores, settings.skill - 1))}
           onClose={() => setOpen(null)}
         />
       )}
 
       {open !== null && typeof open === 'object' && 'won' in open && (
-        <OutcomeDialog
+        <EndDialog
+          title={TITLE}
           outcome="win"
           lines={['You matched them all!', `Time - ${open.won}`]}
           onOk={() => afterVictory(open.won)}
@@ -238,51 +215,25 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
       )}
 
       {open !== null && typeof open === 'object' && 'highScore' in open && (
-        <HighScoreDialog
-          name={scores.playerName}
+        <NewHighScore
+          name={scores.player}
           onOk={(name) => {
-            const tables = [...scores.tables];
-            tables[settings.skill - 1] = insert(tables[settings.skill - 1]!, open.place, {
-              name,
-              score: open.highScore,
-            });
-            setScores({ tables, playerName: name });
+            setScores(record(scores, settings.skill - 1, open.place, name, open.highScore));
             setOpen(null);
           }}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play CardMatch"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>Keyboard: F2 starts a new game. On a touch screen, tap the cards.</p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="CardMatch"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Keyboard: F2 starts a new game. On a touch screen, tap the cards."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About CardMatch"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>CardMatch copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="CardMatch" onClose={() => setOpen(null)} />}
     </Window>
   );
 }

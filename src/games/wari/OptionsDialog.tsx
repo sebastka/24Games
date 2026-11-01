@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { AnimationTab, ConfirmRestart, PiecesTab, SkillLevel } from './czgame.tsx';
 import type { Settings } from './settings.ts';
 
 const PER_PIT = ['1', '2', '3', '4', '5', '6', 'Random'];
@@ -18,7 +19,7 @@ export function OptionsDialog(props: {
 
   const options = (
     <div className="wari-options">
-      <SkillLevel skill={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
+      <SkillLevel value={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
       <div className="wari-lists">
         <fieldset>
           <legend>Pieces Per Cell</legend>
@@ -69,8 +70,8 @@ export function OptionsDialog(props: {
               label: '~Pieces',
               content: (
                 <PiecesTab
-                  pieceSet={draft.pieceSet}
-                  twoPieces={false}
+                  value={draft.pieceSet}
+                  twoSides={false}
                   onChange={(pieceSet) => setDraft({ ...draft, pieceSet })}
                 />
               ),
@@ -81,12 +82,19 @@ export function OptionsDialog(props: {
             },
             {
               label: '~Animation',
-              content: <AnimationTab speed={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })} />,
+              content: <AnimationTab value={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })} />,
             },
           ]}
         />
       </Dialog>
-      {confirm && <ConfirmRestart title="Wari" onYes={() => props.onOk(draft)} onNo={() => setConfirm(false)} />}
+      {confirm && (
+        <ConfirmBox
+          title="Wari"
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
+      )}
     </>
   );
 }

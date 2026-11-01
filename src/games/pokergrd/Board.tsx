@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import arrows from '../../assets/pokergrd/arrows.png';
 import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { useBackground } from '../../shell/canvas.ts';
 import { CARD_H, CARD_W, cardName, type Card } from '../../shell/cards/cards.ts';
 import {
   drawDragFeedback,
@@ -11,7 +12,6 @@ import {
   type Zone,
 } from '../../shell/cards/drag.ts';
 import { drawBack, drawCard, useCardArt, type CardLook } from '../../shell/cards/draw.ts';
-import { useBackground } from '../../shell/cards/table.ts';
 import { beep } from '../../shell/sound.ts';
 import { CELLS, isOver, SIZE, type State } from './logic.ts';
 

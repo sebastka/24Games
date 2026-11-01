@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, BoardTab, Choice, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
-import { CONFIRM_OPTIONS, ConfirmBox } from './shared/Boxes.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { AnimationTab, BoardTab, Choice, PiecesTab, SkillLevel } from './shared/OptionsTabs.tsx';
 import type { Settings } from './settings.ts';
 
 /**

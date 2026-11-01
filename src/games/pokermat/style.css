@@ -42,7 +42,6 @@
 }
 
 .sign-in input[type='text'] {
-  text-transform: none;
   width: 260px;
   max-width: 100%;
 }

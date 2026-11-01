@@ -1,20 +1,19 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 
 /**
  * Sound events, with the original's defaults: "<title> Start" and "<title> Exit", which every
  * game registers, then bbchess.exe's own (FUN_00401488).
  */
-export const SOUND_EVENTS = {
-  'Black Box Chess Start': '',
-  'Black Box Chess Exit': '',
+export const SOUND_EVENTS = soundEvents('Black Box Chess', {
   'Piece Drag': 'click_5',
   'Piece Drop': 'click_4',
   'Click Board Square': 'pop1',
   Victory: 'charge',
   'Bad Guess': 'cuckoo',
   'Give Up': 'instr_4',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

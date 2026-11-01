@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import logoUrl from '../../assets/reversi/logo.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { fillBackground, textureOf, useFitScale, useImage } from '../../shell/canvas.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, NAVY, PURPLE } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, PIECE, SQUARE, usePieces } from '../../shell/czgame/pieces.ts';
 import { BOXES, HEIGHT, HOME, ORIGIN, PANEL, pieceAt, WIDTH } from './layout.ts';
 import { COMPUTER, PLAYER, type Board as Squares, type Side } from './logic.ts';
-import type { Point } from './shared/animate.ts';
-import { BOARD_SHEET, PIECE, PIECE_SHEETS, SQUARE } from './shared/assets.ts';
-import { bevel, centeredText, fillBackground, NAVY, PURPLE, textureOf } from './shared/draw.ts';
-import { usePieces } from './shared/sprites.ts';
 
 /** The board's two looks of square (`FUN_00409920`): the corner and centre 2×2 blocks use the first. */
 const firstLook = (x: number, y: number): boolean =>
   ((x < 2 || x >= 6) && (y < 2 || y >= 6)) || (x >= 3 && x < 5 && y >= 3 && y < 5);
-
-const column = (side: number): number => (side === PLAYER ? 0 : PIECE);
 
 /**
  * The 560×342 game window: the board in its frame, the logo, the two sides' pieces and their
@@ -36,7 +33,7 @@ export function Board(props: {
   const sheet = useImage(BOARD_SHEET);
   const logo = useImage(logoUrl);
   const texture = useImage(textureOf(props.background));
-  const pieces = usePieces(PIECE_SHEETS[props.pieceSet]!);
+  const pieces = usePieces(props.pieceSet);
   const [hover, setHover] = useState(-1);
 
   useEffect(() => {
@@ -56,18 +53,26 @@ export function Board(props: {
       ctx.drawImage(logo, x, y);
     }
     bevel(ctx, PANEL, 2);
-    const piece = (side: number, at: Point) =>
-      ctx.drawImage(pieces, column(side), 0, PIECE, PIECE, at.x, at.y, PIECE, PIECE);
+    const piece = (side: number, at: Point) => ctx.drawImage(pieces[side === PLAYER ? 0 : 1], at.x, at.y, PIECE, PIECE);
     for (const side of [PLAYER, COMPUTER] as const) {
       if (moving?.side !== side) piece(side, HOME[side]);
     }
     ['Player', 'Computer'].forEach((label, i) => {
       const b = BOXES[i]!;
       bevel(ctx, b, 2);
-      centeredText(ctx, label, { ...b, bottom: b.top + 24 }, 'bold 17px Arial, Helvetica, sans-serif', NAVY);
+      centeredText(
+        ctx,
+        label,
+        { ...b, bottom: b.top + 24 },
+        { font: 'bold 17px Arial, Helvetica, sans-serif', color: NAVY },
+      );
       const score = squares.filter((s) => s === (i === 0 ? PLAYER : COMPUTER)).length;
       const area = { left: b.left + 2, top: b.top + 24, right: b.right - 2, bottom: b.bottom - 2 };
-      centeredText(ctx, String(score), area, 'bold 46px Arial, Helvetica, sans-serif', PURPLE, true);
+      centeredText(ctx, String(score), area, {
+        font: 'bold 46px Arial, Helvetica, sans-serif',
+        color: PURPLE,
+        shadow: true,
+      });
     });
     squares.forEach((side, square) => side !== 0 && piece(side, pieceAt(square)));
     if (moving) piece(moving.side, moving.at);

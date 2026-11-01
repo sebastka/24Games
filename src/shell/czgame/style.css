@@ -1,0 +1,89 @@
+/* The CZGAME32.DLL board games' play field and option tabs (OptionsTabs.tsx). */
+
+.board-game .board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.board-game .board canvas {
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+/* Options › Options: skill level on the left, the drop-down lists on the right. */
+
+.board-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px 24px;
+}
+
+.board-options .skill .check {
+  margin: 4px 0 8px;
+}
+
+.board-options .choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.board-options select {
+  width: 100%;
+  min-width: 170px;
+}
+
+/* A list and its preview (Board, Pieces…). */
+
+.list-tab {
+  justify-content: center;
+}
+
+.list-tab .preview {
+  margin: 8px 24px;
+}
+
+/* Options › Animation. */
+
+.animation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.animation .speed {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 160px;
+  margin: 8px auto 0;
+}
+
+.animation .speed.disabled {
+  color: var(--shadow);
+}
+
+.animation .speed input {
+  width: 100%;
+}
+
+.animation .ends {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.mouse-dragging {
+  min-width: 180px;
+  padding: 8px 20px;
+}
+
+.mouse-dragging .zones {
+  margin-top: 18px;
+}

@@ -1,5 +1,7 @@
 // The games' WAV sounds. Like sndPlaySound, which the originals use, a sound stops the one
 // still playing.
+import { useEffect, useRef } from 'react';
+import type { SoundSettings } from './soundEvents.ts';
 
 const urls = import.meta.glob<string>('../assets/sounds/*.wav', { query: '?url', import: 'default', eager: true });
 const byName = new Map(Object.entries(urls).map(([path, url]) => [path.replace(/^.*\/|\.wav$/g, ''), url]));
@@ -36,4 +38,34 @@ export function beep(): void {
   } catch {
     // No Web Audio.
   }
+}
+
+/** Plays the sound of `event`, if sounds are enabled and the event has one. */
+export function playEvent(settings: SoundSettings, event: string): void {
+  const name = settings.sounds[event];
+  if (settings.soundEnabled && name) playSound(name);
+}
+
+/**
+ * "<title> Start" once, when the game window opens (the originals play it just before showing
+ * their window), and the returned `exit`, which plays "<title> Exit" and closes the window (as
+ * the originals' close handler, bulldoze.exe FUN_00404ac0). Call it before the game's own
+ * effects, whose sounds then follow Start.
+ */
+export function useStartExit(title: string, settings: SoundSettings, onExit: () => void): () => void {
+  const latest = useRef(settings);
+  const started = useRef(false);
+  useEffect(() => {
+    latest.current = settings;
+  });
+  useEffect(() => {
+    // Once, StrictMode's second run included.
+    if (started.current) return;
+    started.current = true;
+    playEvent(latest.current, `${title} Start`);
+  }, [title]);
+  return () => {
+    playEvent(latest.current, `${title} Exit`);
+    onExit();
+  };
 }

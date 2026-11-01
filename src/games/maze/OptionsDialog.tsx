@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
-import { playSound, SOUND_NAMES } from '../../shell/sound.ts';
-import { PlayerKeys } from '../cheesy/common/PlayerKeys.tsx';
+import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
+import { PlayerKeys } from '../../shell/PlayerKeys.tsx';
 import { SIZES, type Action, type Keys, type Settings } from './settings.ts';
 
 const SKILLS = ['1 Slow', '2', '3', '4', '5', '6', '7', '8', '9', '10 Fast'];
@@ -16,52 +17,6 @@ const KEY_ROWS: [Action, string][][] = [
   ],
   [['down', 'Mouse Down']],
 ];
-
-/** MazeRace's Extras tab: only the sounds (the game has no background option). */
-function SoundsTab(props: {
-  value: { soundEnabled: boolean; sounds: Record<string, string> };
-  onChange: (v: { soundEnabled: boolean; sounds: Record<string, string> }) => void;
-}) {
-  const { value } = props;
-  const events = Object.keys(value.sounds);
-  const [event, setEvent] = useState(0);
-  const eventName = events[event] ?? '';
-  const sound = value.sounds[eventName] ?? '';
-  return (
-    <div className="extras">
-      <fieldset>
-        <legend>Game Sounds</legend>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={value.soundEnabled}
-            onChange={(e) => props.onChange({ ...value, soundEnabled: e.target.checked })}
-          />
-          Game Sounds Enabled
-        </label>
-        <ListBox label="Sound events" items={events} selected={event} onSelect={setEvent} rows={4} />
-        <div className="sound-choice">
-          <select
-            aria-label={`Sound for ${eventName}`}
-            value={sound}
-            disabled={!value.soundEnabled}
-            onChange={(e) => props.onChange({ ...value, sounds: { ...value.sounds, [eventName]: e.target.value } })}
-          >
-            <option value="">(none)</option>
-            {SOUND_NAMES.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <button type="button" disabled={!sound || !value.soundEnabled} onClick={() => playSound(sound)}>
-            Test
-          </button>
-        </div>
-      </fieldset>
-    </div>
-  );
-}
 
 /**
  * Game › Options (dialog 260, FUN_00404310): players and the computer's speed, walls and
@@ -84,7 +39,7 @@ export function OptionsDialog(props: {
     setDraft({ ...draft, keys: both });
   };
   const size = (label: string, value: number, set: (v: number) => void) => (
-    <label className="key-choice">
+    <label className="maze-size">
       {label}
       <select value={value} onChange={(e) => set(Number(e.target.value))}>
         {SIZES.map((n) => (
@@ -115,15 +70,14 @@ export function OptionsDialog(props: {
             Players
           </label>
         </div>
-        <div aria-disabled={!computer} style={computer ? undefined : { opacity: 0.5, pointerEvents: 'none' }}>
-          <ListBox
-            label="Skill"
-            items={SKILLS}
-            selected={Math.max(0, draft.skill - 1)}
-            onSelect={(i) => setDraft({ ...draft, skill: i + 1 })}
-            rows={5}
-          />
-        </div>
+        <ListBox
+          label="Skill"
+          items={SKILLS}
+          selected={Math.max(0, draft.skill - 1)}
+          onSelect={(i) => setDraft({ ...draft, skill: i + 1 })}
+          rows={5}
+          disabled={!computer}
+        />
       </fieldset>
       <fieldset>
         <legend>Walls</legend>
@@ -163,13 +117,13 @@ export function OptionsDialog(props: {
     <div className="maze-keys">
       <PlayerKeys
         legend="White Mouse Keys (player 1)"
-        rows={KEY_ROWS}
+        groups={KEY_ROWS}
         keys={draft.keys[0]}
         onChange={(k) => setKeys(0, k)}
       />
       <PlayerKeys
         legend="Brown Mouse Keys (player 2)"
-        rows={KEY_ROWS}
+        groups={KEY_ROWS}
         keys={draft.keys[1]}
         onChange={(k) => setKeys(1, k)}
         disabled={computer}
@@ -193,23 +147,20 @@ export function OptionsDialog(props: {
             { label: '~Keys', content: keys },
             {
               label: '~Extras',
-              content: <SoundsTab value={draft} onChange={(v) => setDraft({ ...draft, ...v })} />,
+              content: (
+                <ExtrasTab value={draft} background={false} onChange={(extras) => setDraft({ ...draft, ...extras })} />
+              ),
             },
           ]}
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title="MazeRace"
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

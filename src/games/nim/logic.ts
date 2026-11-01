@@ -20,16 +20,21 @@ export const take = (piles: Piles, { row, count }: Move): Piles => piles.map((n,
 const empty = (piles: Piles): boolean => piles.every((n) => n === 0);
 
 /**
- * Whether the game is over after a move (`FUN_004044a4`): with "Take the Last Piece", when no
- * piece is left; with "Leave the Last Piece", when exactly one piece is left (the player to move
- * would have to take it). In the latter, a move that takes all the remaining pieces is not
- * noticed: the game then goes on with an empty board, as in the original.
+ * Who has won after a move, if the game is over (`FUN_004044a4`): `'mover'` for the player who
+ * just moved, `'other'` for the opponent, null while it goes on. With "Take the Last Piece", the
+ * mover wins when no piece is left. With "Leave the Last Piece", the mover wins when exactly one
+ * piece is left (the opponent would have to take it), and loses when they took all the remaining
+ * pieces. The original misses that last case: the game then went on with an empty board, the
+ * computer "taking 0 pieces from row A", until Game › New. Fixed here (see docs/games/nim.md).
  */
-export function isOver(piles: Piles, takeLast: boolean): boolean {
-  if (takeLast) return empty(piles);
-  if (piles.some((n) => n > 1)) return false;
-  return piles.filter((n) => n === 1).length === 1;
+export function winner(piles: Piles, takeLast: boolean): 'mover' | 'other' | null {
+  if (empty(piles)) return takeLast ? 'mover' : 'other';
+  if (takeLast || piles.some((n) => n > 1)) return null;
+  return piles.filter((n) => n === 1).length === 1 ? 'mover' : null;
 }
+
+/** Whether the game is over after a move. */
+export const isOver = (piles: Piles, takeLast: boolean): boolean => winner(piles, takeLast) !== null;
 
 /**
  * Whether the position is lost for the player to move in plain Nim (`FUN_0040465f`): the

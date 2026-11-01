@@ -15,7 +15,7 @@ import {
   winningFour,
   type Position,
 } from '../src/games/connect/logic.ts';
-import { msvcRand } from '../src/games/reversi/logic.ts';
+import { msvcRand } from '../src/shell/random.ts';
 
 /** Plays columns in turn from a new game. */
 const playAll = (columns: number[], computerFirst = false): Position => columns.reduce(drop, start(computerFirst));

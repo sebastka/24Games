@@ -1,18 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  canMove,
-  cell,
-  enter,
-  isOver,
-  KEYS,
-  maxDigit,
-  move,
-  newGame,
-  place,
-  type Entry,
-  type State,
-} from '../src/games/voracity/logic.ts';
+import { canMove, cell, isOver, KEYS, maxDigit, move, newGame, type State } from '../src/games/voracity/logic.ts';
 
 /** A board from rows of digits (the target at its '0'). */
 function board(rows: string[], score = 0): State {
@@ -71,20 +59,4 @@ test('the numeric keypad and the arrows', () => {
   assert.deepEqual(KEYS['8'], [0, -1]);
   assert.deepEqual(KEYS['1'], [-1, 1]);
   assert.deepEqual(KEYS.ArrowRight, [1, 0]);
-});
-
-test('the Hall of Fame: ten places, a higher score enters above', () => {
-  const table: Entry[] = [
-    { name: 'A', score: 50 },
-    { name: 'B', score: 30 },
-  ];
-  assert.equal(place(table, 40), 1);
-  assert.equal(place(table, 30), 2, 'an equal score goes below');
-  assert.deepEqual(
-    enter(table, { name: 'C', score: 40 }).map((e) => e.name),
-    ['A', 'C', 'B'],
-  );
-  const full = Array.from({ length: 10 }, (_, i) => ({ name: `${i}`, score: 100 - i }));
-  assert.equal(place(full, 91), -1);
-  assert.equal(enter(full, { name: 'X', score: 95 }).length, 10);
 });

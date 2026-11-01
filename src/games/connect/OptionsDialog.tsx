@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, BoardTab, Choice, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
-import { CONFIRM_OPTIONS, ConfirmBox } from '../reversi/shared/Boxes.tsx';
-import { AnimationTab, BoardTab, Choice, PiecesTab, SkillLevel } from '../reversi/shared/OptionsTabs.tsx';
-import { SoundsTab } from '../reversi/shared/SoundsTab.tsx';
+import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import type { Settings } from './settings.ts';
 
 /**
@@ -54,7 +54,9 @@ export function OptionsDialog(props: {
             },
             {
               label: '~Extras',
-              content: <SoundsTab value={draft} onChange={(extras) => setDraft({ ...draft, ...extras })} />,
+              content: (
+                <ExtrasTab value={draft} background={false} onChange={(extras) => setDraft({ ...draft, ...extras })} />
+              ),
             },
             {
               label: '~Animation',

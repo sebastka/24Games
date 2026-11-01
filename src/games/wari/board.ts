@@ -1,6 +1,6 @@
 // Geometry of Wari's window (608×300, wari.exe's window resource): the pits
 // (`FUN_0040a3a0`), their counters (`FUN_0040a450`) and the messages. Pure.
-import type { Rect } from './czgame.ts';
+import type { Rect } from '../../shell/czgame/draw.ts';
 import { COMPUTER_GOAL, PLAYER_GOAL } from './logic.ts';
 
 export const WIDTH = 608;

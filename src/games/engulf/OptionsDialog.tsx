@@ -1,9 +1,16 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import {
+  AnimationTab,
+  BoardTab,
+  Choice,
+  MouseDragging,
+  PiecesTab,
+  SkillLevel,
+} from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { Label } from '../../shell/Window.tsx';
-import { CONFIRM_OPTIONS, ConfirmBox } from '../reversi/shared/Boxes.tsx';
-import { AnimationTab, BoardTab, Choice, PiecesTab, SkillLevel } from '../reversi/shared/OptionsTabs.tsx';
 import { LAYOUTS, type Progression, type Settings } from './settings.ts';
 
 const NUMBERS = Array.from({ length: LAYOUTS }, (_, i) => String(i + 1));
@@ -110,41 +117,10 @@ export function OptionsDialog(props: {
   );
 
   const dragging = (
-    <fieldset className="dragging">
-      <legend>Mouse Dragging</legend>
-      <label className="check">
-        <input type="radio" name="drag" checked={draft.dragBitmaps} onChange={() => set({ dragBitmaps: true })} />
-        <span>
-          <Label text="~Drag Pieces" />
-        </span>
-      </label>
-      <label className="check">
-        <input type="radio" name="drag" checked={!draft.dragBitmaps} onChange={() => set({ dragBitmaps: false })} />
-        <span>
-          <Label text="D~rag Outlines" />
-        </span>
-      </label>
-      <label className="check zones">
-        <input
-          type="checkbox"
-          checked={draft.showDragZones}
-          onChange={(e) => set({ showDragZones: e.target.checked })}
-        />
-        <span>
-          <Label text="~Show Drag Zones" />
-        </span>
-      </label>
-      <label className="check">
-        <input
-          type="checkbox"
-          checked={draft.showDropZones}
-          onChange={(e) => set({ showDropZones: e.target.checked })}
-        />
-        <span>
-          <Label text="S~how Drop Zones" />
-        </span>
-      </label>
-    </fieldset>
+    <MouseDragging
+      value={{ drag: draft.dragBitmaps, showDragZones: draft.showDragZones, showDropZones: draft.showDropZones }}
+      onChange={({ drag, ...zones }) => set({ dragBitmaps: drag, ...zones })}
+    />
   );
 
   return (
@@ -173,7 +149,9 @@ export function OptionsDialog(props: {
             {
               label: '~Animation',
               content: (
-                <AnimationTab value={draft.animation} onChange={(animation) => set({ animation })} extra={dragging} />
+                <AnimationTab value={draft.animation} onChange={(animation) => set({ animation })}>
+                  {dragging}
+                </AnimationTab>
               ),
             },
           ]}

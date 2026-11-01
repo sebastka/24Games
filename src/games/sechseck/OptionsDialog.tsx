@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { Label } from '../../shell/Window.tsx';
@@ -46,7 +47,7 @@ export function OptionsDialog(props: {
   );
 
   const animation = (
-    <div className="animation">
+    <div className="sechseck-animation">
       <fieldset>
         <legend>Mouse Dragging</legend>
         {[true, false].map((bitmaps) => (
@@ -110,17 +111,12 @@ export function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title="Sechseck"
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

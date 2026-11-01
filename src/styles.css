@@ -228,7 +228,6 @@ select {
 
 input[type='text'] {
   width: 100%;
-  text-transform: uppercase;
 }
 
 fieldset {
@@ -266,6 +265,23 @@ fieldset {
   color: var(--light);
 }
 
+/* Windows 95's information and question icons: a white balloon with a blue sign. */
+.message.info::before,
+.message.question::before {
+  background: var(--light);
+  color: #000080;
+  border: 1px solid var(--dark);
+}
+
+.message.info::before {
+  content: 'i';
+  font-style: italic;
+}
+
+.message.question::before {
+  content: '?';
+}
+
 .listbox {
   margin: 0;
   padding: 2px;
@@ -284,6 +300,11 @@ fieldset {
   line-height: 1.25em;
   white-space: nowrap;
   cursor: default;
+}
+
+.listbox[aria-disabled='true'] {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .listbox li[aria-selected='true'] {
@@ -353,6 +374,10 @@ fieldset {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.extras.sounds-only {
+  justify-content: center;
 }
 
 .explanation {

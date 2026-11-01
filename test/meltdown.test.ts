@@ -13,7 +13,7 @@ import {
   totals,
   type Board,
 } from '../src/games/meltdown/logic.ts';
-import { msvcRand } from '../src/games/reversi/logic.ts';
+import { msvcRand } from '../src/shell/random.ts';
 
 /** A board from rows of numbers (the original's values: 1-10 the player, 11-20 the computer). */
 const board = (rows: number[][]): Board => rows.flat();

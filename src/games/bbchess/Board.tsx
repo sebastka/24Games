@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import piecesImage from '../../assets/bbchess/pieces.png';
 import { useFitScale, useImages } from '../../shell/canvas.ts';
-import { BOARD_IMAGE, drawSquare, PIECE_SIZE, SQUARE_SIZE } from '../quinto/sets.ts';
+import { BOARD_SHEET, drawSquare, PIECE, SQUARE } from '../../shell/czgame/pieces.ts';
 import { canDrop, canGuess, PIECES, type Point, type State } from './logic.ts';
+import { invertOutline } from '../../shell/czgame/draw.ts';
 
 /** The original window's client area: 421×328. */
 export const WIDTH = 421;
@@ -43,16 +44,6 @@ function frame(
   }
 }
 
-/** The zones' mark: a 3-pixel rectangle, inverting what is under it. */
-function invertRing(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'difference';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
-  ctx.restore();
-}
-
 /** Text with a black outline (the original's outlined fonts), centred on (x, y). */
 function outlined(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, color: string) {
   ctx.font = 'bold 40px Arial, Helvetica, sans-serif';
@@ -66,7 +57,7 @@ function outlined(ctx: CanvasRenderingContext2D, text: string, x: number, y: num
   ctx.fillText(text, x, y);
 }
 
-const squareRect = (p: Point) => ({ x: BOARD + p.x * SQUARE_SIZE, y: BOARD + p.y * SQUARE_SIZE });
+const squareRect = (p: Point) => ({ x: BOARD + p.x * SQUARE, y: BOARD + p.y * SQUARE });
 
 /** Where piece `i` is shown (`FUN_0040105b`): on its square, or in the palette. */
 function pieceRect(state: State, i: number) {
@@ -100,13 +91,13 @@ export function Board(props: {
   const { state, boardSet } = props;
   const canvas = useRef<HTMLCanvasElement>(null);
   const box = useRef<HTMLDivElement>(null);
-  const images = useImages([piecesImage, BOARD_IMAGE]);
+  const images = useImages([piecesImage, BOARD_SHEET]);
   const scale = useFitScale(box, WIDTH, HEIGHT, 60);
   const [drag, setDrag] = useState<{ piece: number; at: Point; grab: Point } | null>(null);
   const [pointer, setPointer] = useState<Point | null>(null);
 
   const squareAt = (p: Point): Point | null => {
-    const [x, y] = [Math.floor((p.x - BOARD) / SQUARE_SIZE), Math.floor((p.y - BOARD) / SQUARE_SIZE)];
+    const [x, y] = [Math.floor((p.x - BOARD) / SQUARE), Math.floor((p.y - BOARD) / SQUARE)];
     return p.x >= BOARD && p.y >= BOARD && x < 8 && y < 8 ? { x, y } : null;
   };
   /** The drop zone under `p`: a square, the palette (null), or none (undefined). */
@@ -119,7 +110,7 @@ export function Board(props: {
     if (!state.active) return -1;
     for (let i = 0; i < PIECES; i++) {
       const r = pieceRect(state, i);
-      if (inside(p, r.x, r.y, PIECE_SIZE, PIECE_SIZE)) return i;
+      if (inside(p, r.x, r.y, PIECE, PIECE)) return i;
     }
     return -1;
   };
@@ -138,7 +129,7 @@ export function Board(props: {
       drawSquare(ctx, boards, boardSet, (p.x + p.y) % 2 === 0 ? 0 : 1, r.x, r.y);
       const sq = state.squares[i]!;
       const covered = state.placed.some((q, piece) => piece !== dragged && q?.x === p.x && q?.y === p.y);
-      const [cx, cy] = [r.x + SQUARE_SIZE / 2, r.y + SQUARE_SIZE / 2 + 1];
+      const [cx, cy] = [r.x + SQUARE / 2, r.y + SQUARE / 2 + 1];
       if (sq.kind === 'count') outlined(ctx, String(sq.count), cx, cy, '#008080');
       else if (sq.kind === 'hidden' && !covered) outlined(ctx, '?', cx, cy, '#ffff00');
     }
@@ -158,23 +149,23 @@ export function Board(props: {
     for (let i = 0; i < PIECES; i++) {
       if (i === dragged) continue;
       const r = pieceRect(state, i);
-      ctx.drawImage(sprites, i * PIECE_SIZE, 0, PIECE_SIZE, PIECE_SIZE, r.x, r.y, PIECE_SIZE, PIECE_SIZE);
+      ctx.drawImage(sprites, i * PIECE, 0, PIECE, PIECE, r.x, r.y, PIECE, PIECE);
     }
     // Show Drag Zones: the piece under the pointer; Show Drop Zones: the zone under it.
     if (pointer && !drag && props.showDragZones) {
       const i = pieceAt(pointer);
-      if (i >= 0) invertRing(ctx, pieceRect(state, i).x, pieceRect(state, i).y, PIECE_SIZE, PIECE_SIZE);
+      if (i >= 0) invertOutline(ctx, pieceRect(state, i).x, pieceRect(state, i).y, PIECE, PIECE);
     }
     if (pointer && drag && props.showDropZones) {
       const zone = dropAt(drag.piece, pointer);
-      if (zone === null) invertRing(ctx, PALETTE.x, PALETTE.y, PALETTE.w, PALETTE.h);
-      else if (zone) invertRing(ctx, squareRect(zone).x, squareRect(zone).y, SQUARE_SIZE, SQUARE_SIZE);
+      if (zone === null) invertOutline(ctx, PALETTE.x, PALETTE.y, PALETTE.w, PALETTE.h);
+      else if (zone) invertOutline(ctx, squareRect(zone).x, squareRect(zone).y, SQUARE, SQUARE);
     }
     if (drag) {
       const [x, y] = [drag.at.x - drag.grab.x, drag.at.y - drag.grab.y];
       if (props.dragBitmaps) {
-        ctx.drawImage(sprites, drag.piece * PIECE_SIZE, 0, PIECE_SIZE, PIECE_SIZE, x, y, PIECE_SIZE, PIECE_SIZE);
-      } else invertRing(ctx, x, y, PIECE_SIZE, PIECE_SIZE);
+        ctx.drawImage(sprites, drag.piece * PIECE, 0, PIECE, PIECE, x, y, PIECE, PIECE);
+      } else invertOutline(ctx, x, y, PIECE, PIECE);
     }
   });
 

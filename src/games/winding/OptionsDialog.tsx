@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, BoardTab, MouseDragging, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { Label } from '../../shell/Window.tsx';
-import { AnimationTab, BoardTab, ConfirmRestart, PiecesTab, SkillLevel } from '../wari/czgame.tsx';
 import type { Settings } from './settings.ts';
 
 /** Game › Options (dialog 256): Options, Board, Pieces, Extras and Animation tabs. */
@@ -17,7 +17,7 @@ export function OptionsDialog(props: {
 
   const options = (
     <div className="board-options">
-      <SkillLevel skill={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
+      <SkillLevel value={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
       <fieldset>
         <legend>Who Goes First</legend>
         <select
@@ -47,17 +47,11 @@ export function OptionsDialog(props: {
             { label: '~Options', content: options },
             {
               label: '~Board',
-              content: <BoardTab board={draft.board} onChange={(board) => setDraft({ ...draft, board })} />,
+              content: <BoardTab value={draft.board} onChange={(board) => setDraft({ ...draft, board })} />,
             },
             {
               label: '~Pieces',
-              content: (
-                <PiecesTab
-                  pieceSet={draft.pieceSet}
-                  twoPieces
-                  onChange={(pieceSet) => setDraft({ ...draft, pieceSet })}
-                />
-              ),
+              content: <PiecesTab value={draft.pieceSet} onChange={(pieceSet) => setDraft({ ...draft, pieceSet })} />,
             },
             {
               label: '~Extras',
@@ -66,52 +60,15 @@ export function OptionsDialog(props: {
             {
               label: '~Animation',
               content: (
-                <AnimationTab speed={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })}>
-                  <fieldset className="mouse-dragging">
-                    <legend>Mouse Dragging</legend>
-                    <label className="check">
-                      <input
-                        type="radio"
-                        name="drag"
-                        checked={draft.dragPieces}
-                        onChange={() => setDraft({ ...draft, dragPieces: true })}
-                      />
-                      <span>
-                        <Label text="~Drag Pieces" />
-                      </span>
-                    </label>
-                    <label className="check">
-                      <input
-                        type="radio"
-                        name="drag"
-                        checked={!draft.dragPieces}
-                        onChange={() => setDraft({ ...draft, dragPieces: false })}
-                      />
-                      <span>
-                        <Label text="D~rag Outlines" />
-                      </span>
-                    </label>
-                    <label className="check">
-                      <input
-                        type="checkbox"
-                        checked={draft.showDragZones}
-                        onChange={(e) => setDraft({ ...draft, showDragZones: e.target.checked })}
-                      />
-                      <span>
-                        <Label text="~Show Drag Zones" />
-                      </span>
-                    </label>
-                    <label className="check">
-                      <input
-                        type="checkbox"
-                        checked={draft.showDropZones}
-                        onChange={(e) => setDraft({ ...draft, showDropZones: e.target.checked })}
-                      />
-                      <span>
-                        <Label text="S~how Drop Zones" />
-                      </span>
-                    </label>
-                  </fieldset>
+                <AnimationTab value={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })}>
+                  <MouseDragging
+                    value={{
+                      drag: draft.dragPieces,
+                      showDragZones: draft.showDragZones,
+                      showDropZones: draft.showDropZones,
+                    }}
+                    onChange={({ drag, ...zones }) => setDraft({ ...draft, dragPieces: drag, ...zones })}
+                  />
                 </AnimationTab>
               ),
             },
@@ -119,7 +76,12 @@ export function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <ConfirmRestart title="Winding Standoff" onYes={() => props.onOk(draft)} onNo={() => setConfirm(false)} />
+        <ConfirmBox
+          title="Winding Standoff"
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

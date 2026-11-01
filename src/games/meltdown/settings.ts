@@ -1,16 +1,15 @@
-import { defaults, loadSettings, saveSettings, type BoardSettings } from '../reversi/shared/settings.ts';
+import { defaults, loadSettings, saveSettings, type BoardSettings } from '../../shell/czgame/settings.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 
 /** Sound events, with the original's defaults (meltdown.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Core Meltdown Start': '',
-  'Core Meltdown Exit': '',
+export const SOUND_EVENTS = soundEvents('Core Meltdown', {
   'Player Expands': 'click_1',
   'Player Captures': 'click_4',
   'Computer Expands': 'instr_9',
   'Computer Captures': 'click_5',
   Victory: 'baby_lf3',
   Defeat: 'spooky_2',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends BoardSettings {

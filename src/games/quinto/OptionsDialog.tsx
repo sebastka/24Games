@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
+import { BoardTab, PiecesTab } from '../../shell/czgame/OptionsTabs.tsx';
+import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { MAX_SIZE, MIN_SIZE } from './logic.ts';
-import { BoardPreview, PiecePreview } from './Previews.tsx';
-import { BOARD_SETS, PIECE_SETS } from './sets.ts';
 import type { Settings } from './settings.ts';
 
 const SIZES = Array.from({ length: MAX_SIZE - MIN_SIZE + 1 }, (_, i) => MIN_SIZE + i);
@@ -43,25 +42,6 @@ export function OptionsDialog(props: { settings: Settings; onOk: (s: Settings) =
     </div>
   );
 
-  const sets = (kind: 'board' | 'piece') => (
-    <div className="pieces quinto-sets">
-      <fieldset>
-        <legend>{kind === 'board' ? 'Board Names' : 'Piece Names'}</legend>
-        <ListBox
-          label={kind === 'board' ? 'Board names' : 'Piece names'}
-          items={kind === 'board' ? BOARD_SETS : PIECE_SETS.map((p) => p.name)}
-          selected={kind === 'board' ? draft.boardSet : draft.pieceSet}
-          onSelect={(i) => setDraft(kind === 'board' ? { ...draft, boardSet: i } : { ...draft, pieceSet: i })}
-          rows={7}
-        />
-      </fieldset>
-      <fieldset>
-        <legend>{kind === 'board' ? 'Board Preview' : 'Piece Preview'}</legend>
-        {kind === 'board' ? <BoardPreview set={draft.boardSet} /> : <PiecePreview set={draft.pieceSet} />}
-      </fieldset>
-    </div>
-  );
-
   return (
     <Dialog
       title="Quinto Options"
@@ -74,8 +54,14 @@ export function OptionsDialog(props: { settings: Settings; onOk: (s: Settings) =
       <Notebook
         tabs={[
           { label: '~Options', content: options },
-          { label: '~Board', content: sets('board') },
-          { label: '~Pieces', content: sets('piece') },
+          {
+            label: '~Board',
+            content: <BoardTab value={draft.boardSet} onChange={(boardSet) => setDraft({ ...draft, boardSet })} />,
+          },
+          {
+            label: '~Pieces',
+            content: <PiecesTab value={draft.pieceSet} onChange={(pieceSet) => setDraft({ ...draft, pieceSet })} />,
+          },
           {
             label: '~Extras',
             content: <ExtrasTab value={draft} onChange={(extras) => setDraft({ ...draft, ...extras })} />,

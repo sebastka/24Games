@@ -167,12 +167,15 @@ function search(b: readonly number[], side: 0 | 1, budget: number, alpha: number
 }
 
 /**
- * The node budget of each skill level (Easy, Moderate, Difficult, Expert). The original looks
- * it up with the skill digit's character code, one entry past the table it meant: it reads 130,
- * 195, 64000 and, past the table's end, 47408 (the low half of a code address). Difficult
- * therefore looks further ahead than Expert.
+ * The node budget of each skill level (Easy, Moderate, Difficult, Expert): the original's table
+ * at 0x4122f8. The original looks it up one entry too far (130, 195, 64000, then 47408 past the
+ * table's end), so that its Difficult searches more than its Expert; fixed here (see
+ * docs/games/wari.md).
  */
-export const BUDGETS = [130, 195, 64000, 47408];
+export const BUDGETS = [65, 130, 195, 64000];
+
+/** The budgets the original actually uses (one entry too far), for the tests against it. */
+export const ORIGINAL_BUDGETS = [130, 195, 64000, 47408];
 
 /** `half` of `evaluate` as the original ends up computing it: 6 × an uninitialised 0x004101f4. */
 export const THRESHOLD = 6 * 0x004101f4;
@@ -182,12 +185,12 @@ export const THRESHOLD = 6 * 0x004101f4;
  * search value is strictly the best, trying the pits from its left (12) to its right (7).
  * `skill` is 1-4. Deterministic.
  */
-export function computerMove(board: Board, skill: number, half: number = THRESHOLD): number {
+export function computerMove(board: Board, skill: number, half: number = THRESHOLD, budgets = BUDGETS): number {
   const b = toSearch(board);
   const pits = [13, 12, 11, 10, 9, 8].filter((i) => b[i]! > 0);
   if (pits.length === 0) throw new Error('the computer has no move');
   if (pits.length === 1) return pits[0]! - 1;
-  const budget = Math.floor(BUDGETS[skill - 1]! / pits.length);
+  const budget = Math.floor(budgets[skill - 1]! / pits.length);
   let best = pits[0]!;
   let value = -10000;
   for (const pit of pits) {

@@ -1,4 +1,5 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 import { MAX_SIZE, MIN_SIZE } from './logic.ts';
 
@@ -6,12 +7,10 @@ import { MAX_SIZE, MIN_SIZE } from './logic.ts';
  * Sound events, with the original's defaults: "<title> Start" and "<title> Exit", which every
  * game registers, then quinto.exe's own (FUN_00408120).
  */
-export const SOUND_EVENTS = {
-  'Quinto Start': '',
-  'Quinto Exit': '',
+export const SOUND_EVENTS = soundEvents('Quinto', {
   'Flip Pieces': 'click_4',
   'Puzzle Solved': 'handel',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

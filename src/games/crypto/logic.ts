@@ -1,5 +1,6 @@
 // Rules of Cryptograms, as the original crypto.exe implements them (see docs/games/crypto.md for
 // the functions this follows). Pure and immutable: every action returns a new state.
+import { rand } from '../../shell/random.ts';
 
 /** Skill levels (SkillLevel): 1 Easy, 2 Moderate, 3 Difficult, 4 Expert. */
 export type Skill = 1 | 2 | 3 | 4;
@@ -13,22 +14,14 @@ export interface PhraseFile {
 /** Easy and Difficult take their phrases from crypto1.dat (longer ones), the others from crypto2.dat. */
 export const phraseFileOf = (skill: Skill): 1 | 2 => (skill === 1 || skill === 3 ? 1 : 2);
 
-/** The C library's rand(): 0 to 32767, from an injected random function. */
-export const rand = (random: () => number): number => Math.floor(random() * 32768);
-
 /**
- * The phrase picked (`FUN_00401320`): the file is read from `(rand() * 0x7fffffff + rand()) %
- * size`, computed on signed 32 bits. About half the time that is negative, the seek fails and the
- * file is read from its start: the first phrase comes up in half the games. Otherwise, the first
- * '#' from the offset, wrapping around to the start of the file.
+ * The phrase picked: any phrase of the file, all equally likely. The original (`FUN_00401320`)
+ * seeks to `(rand() * 0x7fffffff + rand()) % size` computed on signed 32 bits: half the time the
+ * offset is negative, the seek fails, and the file's first phrase comes up; the other offsets
+ * favour the phrases after long ones. Fixed here (see docs/games/crypto.md).
  */
 export function pickPhrase(file: PhraseFile, random: () => number): string {
-  const r1 = rand(random);
-  const r2 = rand(random);
-  const offset = ((Math.imul(r1, 0x7fffffff) + r2) | 0) % file.size;
-  const at = offset < 0 ? 0 : offset;
-  const found = file.phrases.find(([position]) => position >= at) ?? file.phrases[0]!;
-  return found[1];
+  return file.phrases[Math.floor(random() * file.phrases.length)]![1];
 }
 
 /**

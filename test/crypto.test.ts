@@ -33,18 +33,18 @@ test('the phrase files', () => {
   assert.equal(file2.size, 79493);
 });
 
-test('picking a phrase: a negative offset reads from the start; otherwise the next "#", wrapping', () => {
+test('picking a phrase: every phrase equally likely (the original favoured the first one)', () => {
   const file = file1 as PhraseFile;
-  // r1 even, r2 < r1: negative, the seek fails: the first phrase.
-  assert.equal(pickPhrase(file, rands(10, 5)), file.phrases[0]![1]);
-  // r1 even, r2 >= r1: offset r2 - r1 (within the first 32 KB).
-  const [at] = file.phrases[3]!;
-  assert.equal(pickPhrase(file, rands(0, at - 1)), file.phrases[3]![1]);
-  assert.equal(pickPhrase(file, rands(0, at)), file.phrases[3]![1]);
-  // r1 odd, r2 < r1: 2^31 - (r1 - r2), modulo the size.
-  const offset = (2 ** 31 - 1) % file.size;
-  const expected = file.phrases.find(([p]) => p >= offset) ?? file.phrases[0]!;
-  assert.equal(pickPhrase(file, rands(1, 0)), expected[1]);
+  assert.equal(
+    pickPhrase(file, () => 0),
+    file.phrases[0]![1],
+  );
+  assert.equal(
+    pickPhrase(file, () => 0.999999),
+    file.phrases.at(-1)![1],
+  );
+  const picks = new Set(Array.from({ length: 2000 }, (_, i) => pickPhrase(file, () => (i * 0.618034) % 1)));
+  assert.ok(picks.size > 500, `${picks.size} different phrases in 2000 games`);
 });
 
 test('Difficult and Expert run the letters together, 26 to a line', () => {

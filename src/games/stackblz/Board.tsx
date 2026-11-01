@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useFitScale } from '../../shell/canvas.ts';
+import { fillBackground, useFitScale } from '../../shell/canvas.ts';
 import {
   COLS,
   diagonalBonus,
@@ -57,11 +57,10 @@ function text(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, w:
   ctx.fillText(s, align === 'center' ? x + w / 2 : x, y);
 }
 
-function draw(ctx: CanvasRenderingContext2D, state: State, art: Art, set: number, background: string, values: boolean) {
+function draw(ctx: CanvasRenderingContext2D, state: State, art: Art, set: number, background: number, values: boolean) {
   // StretchBlt-like shrinking of the value table's pieces.
   ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = art.texture ? (ctx.createPattern(art.texture, 'repeat') ?? background) : background;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  fillBackground(ctx, background, art.texture, WIDTH, HEIGHT);
   ctx.lineWidth = 3;
   ctx.strokeStyle = '#ff0000';
   for (const [l, t, r, b] of BOXES) {
@@ -128,7 +127,7 @@ export function Board(props: {
   state: State;
   art: Art | null;
   pieceSet: number;
-  background: string;
+  background: number;
   /** Whether a game was started: before, the value table shows zeros. */
   values: boolean;
   onAction: (action: Action) => void;

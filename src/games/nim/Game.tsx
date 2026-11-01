@@ -1,28 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle, useFitScale, useImage } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, inside, type Rect } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, drawSquare, usePieces } from '../../shell/czgame/pieces.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import {
-  backgroundStyle,
-  bevel,
-  BOARD_SHEET,
-  centeredText,
-  drawSquare,
-  glide,
-  inside,
-  usePieces,
-  type Outcome,
-  type Rect,
-} from '../wari/czgame.ts';
-import { AboutText, EndDialog } from '../wari/czgame.tsx';
 import {
   computerMove,
   computerText,
   endLines,
-  isOver,
+  winner,
   MAX_PILE,
   ROWS,
   selectionText,
@@ -45,10 +36,6 @@ const SQUARE = 40;
 const PANEL: Rect = { left: 4, top: 4, right: 377, bottom: 257 };
 /** The status line, also a button: clicking it takes the chosen pieces. */
 const STATUS: Rect = { left: 4, top: 262, right: 376, bottom: 296 };
-
-const FACE = '#c0c0c0';
-const LIGHT = '#ffffff';
-const SHADOW = '#808080';
 
 const square = (col: number, row: number): Rect => ({
   left: ORIGIN + col * SQUARE,
@@ -86,13 +73,13 @@ function draw(
   pieces: [HTMLCanvasElement, HTMLCanvasElement],
 ) {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  bevel(ctx, PANEL, 4, FACE, [LIGHT, SHADOW, LIGHT, SHADOW]);
+  bevel(ctx, PANEL, 4);
   ctx.font = 'bold 20px Arial, Helvetica, sans-serif';
   for (let row = 0; row < ROWS; row++) {
     const label = square(0, row);
     drawSquare(ctx, sheet, board, 0, label.left, label.top);
     ctx.fillStyle = '#ffff00';
-    centeredText(ctx, label, String.fromCharCode(65 + row));
+    centeredText(ctx, String.fromCharCode(65 + row), label, { dy: 1 });
     const selected = view.selection?.row === row ? view.selection.from : Infinity;
     for (let col = 0; col < view.shape[row]!; col++) {
       const r = square(col + 1, row);
@@ -100,10 +87,10 @@ function draw(
       if (col < view.piles[row]!) ctx.drawImage(pieces[col >= selected ? 1 : 0], r.left + 4, r.top + 4);
     }
   }
-  bevel(ctx, STATUS, 1, FACE, [LIGHT, SHADOW, LIGHT, SHADOW]);
+  bevel(ctx, STATUS, 1);
   ctx.fillStyle = '#800000';
   ctx.font = 'bold 18px Arial, Helvetica, sans-serif';
-  centeredText(ctx, STATUS, view.said ?? selectionText(inProgress, asMove(view.piles, view.selection)));
+  centeredText(ctx, view.said ?? selectionText(inProgress, asMove(view.piles, view.selection)), STATUS, { dy: 1 });
   if (view.flying) {
     for (let i = 0; i < view.flying.n; i++) ctx.drawImage(pieces[1], view.flying.x + i * SQUARE, view.flying.y);
   }
@@ -142,11 +129,7 @@ export default function Nim({ onExit }: { onExit: () => void }) {
   });
   const paint = () => latestRedraw.current();
 
-  const sound = (event: SoundEvent) => {
-    const s = settingsRef.current;
-    const name = s.sounds[event];
-    if (s.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settingsRef.current, event);
 
   /** Pieces leave a row, flying off to the right of the window (`FUN_00402420`). */
   const remove = async (move: Move, g: number) => {
@@ -157,7 +140,7 @@ export default function Nim({ onExit }: { onExit: () => void }) {
     const speed = settingsRef.current.speed;
     if (speed > 0 && move.count > 0) {
       v.flying = { ...start, n: move.count };
-      await glide(
+      await animate(
         start,
         { x: WIDTH, y: start.y },
         speed,
@@ -175,7 +158,7 @@ export default function Nim({ onExit }: { onExit: () => void }) {
     view.current.said = null;
     view.current.selection = null;
     sound(winner === 'player' ? 'Victory' : 'Defeat');
-    setEnd({ outcome: winner, lines: endLines(winner, settingsRef.current.takeLast) });
+    setEnd({ outcome: winner === 'player' ? 'win' : 'lose', lines: endLines(winner, settingsRef.current.takeLast) });
     paint();
   };
 
@@ -199,9 +182,10 @@ export default function Nim({ onExit }: { onExit: () => void }) {
       v.selection = null;
       await remove(move, g);
       if (generation.current !== g) return;
-      if (isOver(v.piles, takeLast)) {
+      const result = winner(v.piles, takeLast);
+      if (result) {
         busy.current = false;
-        over('player');
+        over(result === 'mover' ? 'player' : 'computer');
         return;
       }
     }
@@ -213,7 +197,8 @@ export default function Nim({ onExit }: { onExit: () => void }) {
     await remove(reply, g);
     if (generation.current !== g) return;
     busy.current = false;
-    if (isOver(v.piles, takeLast)) over('computer');
+    const result = winner(v.piles, takeLast);
+    if (result) over(result === 'mover' ? 'computer' : 'player');
   };
 
   /** Game › New (F2). */
@@ -229,18 +214,14 @@ export default function Nim({ onExit }: { onExit: () => void }) {
     if (!s.playerFirst) void play(true);
   };
 
+  const exit = useStartExit('Nim', settings, onExit);
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    sound('Nim Start');
     newGame();
   });
 
-  const exit = () => {
-    sound('Nim Exit');
-    onExit();
-  };
   const askNewGame = () => (inProgress ? setOpen('abandon') : newGame());
 
   /** A new choice, with its sound; the status line shows it. */
@@ -356,57 +337,31 @@ export default function Nim({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title="Nim"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                newGame();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            newGame();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Nim"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Click a piece to choose it and the pieces on its right, or a row's letter for the whole row; then press
-              Enter or click the line under the board. Keyboard: A to F choose pieces from the end of a row, Space
-              clears the choice.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Nim"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Click a piece to choose it and the pieces on its right, or a row's letter for the whole row; then press Enter or click the line under the board. Keyboard: A to F choose pieces from the end of a row, Space clears the choice."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Nim"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <AboutText title="Nim" />
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Nim" onClose={() => setOpen(null)} />}
 
       {end && (
         <EndDialog
+          title="Nim"
           outcome={end.outcome}
           lines={end.lines}
           onOk={() => {

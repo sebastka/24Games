@@ -10,7 +10,6 @@ import {
   hasMove,
   isLegal,
   legalMoves,
-  msvcRand,
   ORDER,
   play,
   PLAYER,
@@ -18,6 +17,7 @@ import {
   WEIGHTS,
   type Board,
 } from '../src/games/reversi/logic.ts';
+import { msvcRand } from '../src/shell/random.ts';
 
 const sq = (name: string) => (Number(name[1]) - 1) * 8 + name.charCodeAt(0) - 97;
 
@@ -85,11 +85,6 @@ test('the data tables', () => {
   assert.equal(WEIGHTS.length, 64);
   assert.equal(WEIGHTS[0], 100);
   assert.equal(WEIGHTS[9], -50);
-});
-
-test('msvcRand is the C runtime generator', () => {
-  const rand = msvcRand(1);
-  assert.deepEqual([rand(), rand(), rand()], [41, 18467, 6334]);
 });
 
 test('the computer takes a corner when it can', () => {

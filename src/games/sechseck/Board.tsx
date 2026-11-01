@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { useFitScale } from '../../shell/canvas.ts';
+import { fillBackground, useFitScale } from '../../shell/canvas.ts';
+import { bevel, invertOutline } from '../../shell/czgame/draw.ts';
 import {
   cellRect,
   dropZones,
@@ -42,39 +43,6 @@ export interface Drag {
   grabY: number;
 }
 
-// Windows 95 3D colours (StarView's face, light and shadow).
-const FACE = '#c0c0c0';
-const LIGHT = '#ffffff';
-const SHADOW = '#808080';
-
-/** A bevelled box (FUN_00404420): fill, then `width` lines of each colour along the edges. */
-function bevel(ctx: CanvasRenderingContext2D, r: Rect, width: number, raised: boolean, fill = true) {
-  if (fill) {
-    ctx.fillStyle = FACE;
-    ctx.fillRect(r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1);
-  }
-  const [topLeft, bottomRight] = raised ? [LIGHT, SHADOW] : [SHADOW, LIGHT];
-  for (let i = 0; i < width; i++) {
-    ctx.fillStyle = topLeft;
-    ctx.fillRect(r.left + i, r.top + i, r.right - r.left - 2 * i, 1);
-    ctx.fillRect(r.left + i, r.top + i, 1, r.bottom - r.top - 2 * i);
-    ctx.fillStyle = bottomRight;
-    ctx.fillRect(r.left + i, r.bottom - i, r.right - r.left - 2 * i + 1, 1);
-    ctx.fillRect(r.right - i, r.top + i, 1, r.bottom - r.top - 2 * i + 1);
-  }
-}
-
-/** An inverted outline (FUN_004062d0 draws them with an XOR raster operation). */
-function invertedOutline(ctx: CanvasRenderingContext2D, r: Rect, width: number) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'difference';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = width;
-  const half = width / 2;
-  ctx.strokeRect(r.left + half, r.top + half, r.right - r.left + 1 - width, r.bottom - r.top + 1 - width);
-  ctx.restore();
-}
-
 /** A piece on its grey hexagon at (x, y) (FUN_0040b7e0). */
 function drawPiece(ctx: CanvasRenderingContext2D, art: Art, piece: number, x: number, y: number) {
   ctx.drawImage(art.piece, x, y);
@@ -91,23 +59,22 @@ function draw(
   ctx: CanvasRenderingContext2D,
   state: State,
   art: Art,
-  background: string,
+  background: number,
   drag: Drag | null,
   options: { dragBitmaps: boolean; showDragZones: boolean; showDropZones: boolean },
   pointer: { x: number; y: number } | null,
 ) {
-  ctx.fillStyle = art.texture ? (ctx.createPattern(art.texture, 'repeat') ?? background) : background;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  fillBackground(ctx, background, art.texture, WIDTH, HEIGHT);
 
   // The time bar: the stopwatch, in dark red, over 5 seconds (FUN_00409430).
-  bevel(ctx, TIME_BOX, 2, true);
-  bevel(ctx, { left: 381, top: 7, right: 507, bottom: 33 }, 1, false, false);
+  bevel(ctx, TIME_BOX, 2);
+  bevel(ctx, { left: 381, top: 7, right: 507, bottom: 33 }, 1, null, 'sunken');
   const bar = Math.trunc(((TIME_BOX.right - TIME_BOX.left + 1 - 8) * state.bar) / PENALTY_MS);
   ctx.fillStyle = '#800000';
   if (bar > 0) ctx.fillRect(TIME_BAR.left, TIME_BAR.top, bar, TIME_BAR.bottom - TIME_BAR.top + 1);
 
-  bevel(ctx, SCORE_BOX, 2, true);
-  bevel(ctx, SCORE_INNER, 2, false, false);
+  bevel(ctx, SCORE_BOX, 2);
+  bevel(ctx, SCORE_INNER, 2, null, 'sunken');
   ctx.fillStyle = '#000080';
   ctx.font = 'bold 14px Arial, Helvetica, sans-serif';
   text(ctx, 'Score', SCORE_LABEL);
@@ -115,8 +82,8 @@ function draw(
   ctx.font = '22px Arial, Helvetica, sans-serif';
   text(ctx, String(state.score), SCORE_VALUE);
 
-  bevel(ctx, PIECES_BOX, 2, true);
-  bevel(ctx, PIECES_INNER, 2, false, false);
+  bevel(ctx, PIECES_BOX, 2);
+  bevel(ctx, PIECES_INNER, 2, null, 'sunken');
   SLOT_POSITIONS.forEach((p, slot) => {
     // While dragged by its picture, the piece leaves its slot empty.
     if (drag?.slot === slot && options.dragBitmaps) return;
@@ -154,13 +121,14 @@ function draw(
     const x = drag.x - drag.grabX;
     const y = drag.y - drag.grabY;
     if (options.dragBitmaps) drawPiece(ctx, art, state.slots[drag.slot]!, x, y);
-    else invertedOutline(ctx, { left: x, top: y, right: x + PIECE_W - 1, bottom: y + PIECE_H - 1 }, 3);
+    else invertOutline(ctx, x, y, PIECE_W, PIECE_H);
     if (options.showDropZones) {
       for (let row = 0; row < size; row++) {
         for (let col = 0; col < size; col++) {
           if (!isFree(state.cells[row * size + col]!)) continue;
           for (const z of dropZones(cellRect(size, col, row))) {
-            if (inside(z, drag.x, drag.y)) invertedOutline(ctx, z, 1);
+            if (inside(z, drag.x, drag.y))
+              invertOutline(ctx, z.left, z.top, z.right - z.left + 1, z.bottom - z.top + 1, 1);
           }
         }
       }
@@ -168,7 +136,8 @@ function draw(
   } else if (options.showDragZones && pointer && state.playing) {
     SLOT_POSITIONS.forEach((_, slot) => {
       const r = slotRect(slot);
-      if (inside(r, pointer.x, pointer.y)) invertedOutline(ctx, r, 3);
+      if (inside(r, pointer.x, pointer.y))
+        invertOutline(ctx, r.left, r.top, r.right - r.left + 1, r.bottom - r.top + 1);
     });
   }
 }
@@ -181,7 +150,7 @@ function draw(
 export function Board(props: {
   state: State;
   art: Art | null;
-  background: string;
+  background: number;
   drag: Drag | null;
   dragBitmaps: boolean;
   showDragZones: boolean;

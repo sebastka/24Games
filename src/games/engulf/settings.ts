@@ -1,12 +1,11 @@
-import { defaults, loadSettings, saveSettings, type BoardSettings } from '../reversi/shared/settings.ts';
+import { defaults, loadSettings, saveSettings, type BoardSettings } from '../../shell/czgame/settings.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { LAYOUTS, type Progression } from './progress.ts';
 
 export { LAYOUTS, type Progression };
 
 /** Sound events, with the original's defaults (engulf.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Engulf Start': '',
-  'Engulf Exit': '',
+export const SOUND_EVENTS = soundEvents('Engulf', {
   'Piece Drag': 'click_5',
   'Piece Drop': 'click_4',
   'Enemy Piece Move': 'boing_3',
@@ -14,7 +13,7 @@ export const SOUND_EVENTS = {
   Victory: 'orch_2',
   Defeat: 'laugh_1',
   Tie: 'stopwach',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends BoardSettings {

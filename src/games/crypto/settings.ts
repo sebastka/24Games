@@ -1,4 +1,5 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 import type { Skill } from './logic.ts';
 
@@ -6,16 +7,14 @@ import type { Skill } from './logic.ts';
  * Sound events, with the original's defaults: "<title> Start" and "<title> Exit", which every
  * game registers, then crypto.exe's own (FUN_00401000).
  */
-export const SOUND_EVENTS = {
-  'Cryptograms Start': '',
-  'Cryptograms Exit': '',
+export const SOUND_EVENTS = soundEvents('Cryptograms', {
   'Click a Cell': 'click_4',
   'Change a Letter': 'click_3',
   Victory: 'orch_2',
   'Victory -No Hints': 'handel',
   Defeat: 'instr_2',
   Hint: 'instr_9',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export interface Settings extends Extras {

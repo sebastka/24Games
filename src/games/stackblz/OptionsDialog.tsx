@@ -1,8 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { Dialog, ListBox, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
+import { KEY_NAMES } from '../../shell/keys.ts';
+import { PlayerKeys } from '../../shell/PlayerKeys.tsx';
 import { TILE } from './Board.tsx';
-import { KEY_ACTIONS, KEYS, PIECE_SETS, type Settings } from './settings.ts';
+import type { Action } from './logic.ts';
+import { KEY_ACTIONS, PIECE_SETS, type Settings } from './settings.ts';
+
+/** The Keys page's groups: moves and drop, then the rotations. */
+const KEY_GROUPS = [KEY_ACTIONS.slice(0, 3), KEY_ACTIONS.slice(3)].map((group) =>
+  group.map(({ action, label }): [Action, string] => [action, label]),
+);
+
+/** A value for each of the five keys. */
+const mapKeys = <T,>(f: (action: Action) => T): Record<Action, T> =>
+  Object.fromEntries(KEY_ACTIONS.map(({ action }) => [action, f(action)])) as Record<Action, T>;
 
 /** Stack Piece Preview (FUN_0040ac10): the six pieces, 3×2, on 4×3 empty cells. */
 function PiecePreview({ sheet, set }: { sheet: string; set: number }) {
@@ -59,29 +72,15 @@ export function OptionsDialog(props: {
     </div>
   );
 
-  const keySelect = ({ action, label }: (typeof KEY_ACTIONS)[number]) => (
-    <label key={action}>
-      <span>{label}</span>
-      <select
-        value={draft.keys[action]}
-        onChange={(e) => setDraft({ ...draft, keys: { ...draft.keys, [action]: Number(e.target.value) } })}
-      >
-        {KEYS.map(([name], i) => (
-          <option key={name} value={i}>
-            {name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-
   // As the original's Keys page: moves and drop on the left, rotations on the right.
   const keys = (
-    <fieldset className="player-keys">
-      <legend>Player Keys</legend>
-      <div>{KEY_ACTIONS.slice(0, 3).map(keySelect)}</div>
-      <div className="rotations">{KEY_ACTIONS.slice(3).map(keySelect)}</div>
-    </fieldset>
+    <PlayerKeys
+      legend="Player Keys"
+      layout="columns"
+      groups={KEY_GROUPS}
+      keys={mapKeys((action) => KEY_NAMES[draft.keys[action]]!)}
+      onChange={(k) => setDraft({ ...draft, keys: mapKeys((action) => KEY_NAMES.indexOf(k[action])) })}
+    />
   );
 
   return (
@@ -106,17 +105,12 @@ export function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title="StackBlitz"
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

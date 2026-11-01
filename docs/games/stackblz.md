@@ -80,8 +80,8 @@ Monochrome`. The game composes a 320×32 strip (`FUN_00407c80`): code 0 (the emp
   of white boxes (rank 18 px, name 160 px, score 60 px wide, 18 high, Arial 13), row _i_ at
   (10 + 11i, 10 + 27i); OK and Clear Scores ("Are you sure you want to clear the scores in the
   high score table?").
-- The web version: [src/games/stackblz/highscores.ts](../../src/games/stackblz/highscores.ts)
-  and [HallOfFame.tsx](../../src/games/stackblz/HallOfFame.tsx), also used by Sechseck.
+- The web version: [src/shell/highscores.ts](../../src/shell/highscores.ts) and
+  [HallOfFame.tsx](../../src/shell/HallOfFame.tsx), shared by every game with high scores.
 
 ## Sound events (and their default sounds)
 

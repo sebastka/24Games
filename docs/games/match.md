@@ -56,8 +56,10 @@ A memory game: turn the cards two by two to find the pairs, against the clock.
   down per row), OK and Clear Scores ("Are you sure you want to clear the scores in the high
   score table?", `FUN_00408500`).
 
-The web version keeps these dialogs in `src/games/match/Dialogs.tsx` and `hallOfFame.ts`, with
-the "You Win!" / "You Lose!" / "It's a Tie!" dialog, for the other games that use them.
+The web version has these dialogs once, for every game, in
+[src/shell/HallOfFame.tsx](../../src/shell/HallOfFame.tsx) and
+[highscores.ts](../../src/shell/highscores.ts), and the "You Win!" / "You Lose!" / "It's A Tie!"
+dialog in [EndDialog.tsx](../../src/shell/EndDialog.tsx).
 
 ## Sound events (and their default sounds)
 

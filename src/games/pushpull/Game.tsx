@@ -2,24 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import logoUrl from '../../assets/pushpull/logo.png';
 import markerUrl from '../../assets/pushpull/marker.png';
 import visitedUrl from '../../assets/pushpull/visited.png';
-import codezone from '../../assets/shared/codezone.png';
-import { useFitScale, useImages } from '../../shell/canvas.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle, useFitScale, useImages } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, type Rect } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, drawSquare, usePieces } from '../../shell/czgame/pieces.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import {
-  backgroundStyle,
-  bevel,
-  BOARD_SHEET,
-  centeredText,
-  drawSquare,
-  glide,
-  usePieces,
-  type Outcome,
-  type Rect,
-} from '../wari/czgame.ts';
-import { AboutText, EndDialog } from '../wari/czgame.tsx';
 import {
   captures,
   computerMove,
@@ -50,14 +42,6 @@ const LOGO: Rect = { left: 301, top: 4, right: 508, bottom: 44 };
 const ICONS: Rect = { left: 301, top: 48, right: 508, bottom: 84 };
 const PLAYER: Rect = { left: 301, top: 88, right: 402, bottom: 297 };
 const COMPUTER: Rect = { left: 406, top: 88, right: 508, bottom: 297 };
-
-const FACE = '#c0c0c0';
-const BEVEL = ['#ffffff', '#808080', '#ffffff', '#808080'];
-
-interface Point {
-  x: number;
-  y: number;
-}
 
 const squareAt = (i: number): Point => ({
   x: ORIGIN + (i % SIZE) * SQUARE,
@@ -111,17 +95,17 @@ interface Art {
 
 function draw(ctx: CanvasRenderingContext2D, view: View, art: Art) {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  bevel(ctx, PANEL, 4, FACE, BEVEL);
+  bevel(ctx, PANEL, 4);
   ctx.drawImage(
     art.logo,
     LOGO.left + ((LOGO.right - LOGO.left + 1) >> 1) - (art.logo.width >> 1),
     LOGO.top - (art.logo.height >> 1) + ((LOGO.bottom - LOGO.top + 1) >> 1),
   );
-  for (const r of [ICONS, PLAYER, COMPUTER]) bevel(ctx, r, 2, FACE, BEVEL);
+  for (const r of [ICONS, PLAYER, COMPUTER]) bevel(ctx, r, 2);
   ctx.fillStyle = '#000080';
   ctx.font = 'bold 18px Arial, Helvetica, sans-serif';
-  centeredText(ctx, { ...PLAYER, bottom: PLAYER.top + 24 }, 'Player');
-  centeredText(ctx, { ...COMPUTER, bottom: COMPUTER.top + 24 }, 'Computer');
+  centeredText(ctx, 'Player', { ...PLAYER, bottom: PLAYER.top + 24 }, { dy: 1 });
+  centeredText(ctx, 'Computer', { ...COMPUTER, bottom: COMPUTER.top + 24 }, { dy: 1 });
   ctx.drawImage(art.pieces[0], PLAYER.left + ((PLAYER.right - PLAYER.left - 32) >> 1), ICONS.top + 3);
   ctx.drawImage(art.pieces[1], COMPUTER.left + ((COMPUTER.right - COMPUTER.left - 32) >> 1), ICONS.top + 3);
   // The squares (`FUN_004090c0`): the first square of the board on the edges, the second
@@ -186,11 +170,7 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
   });
   const paint = () => latestRedraw.current();
 
-  const sound = (event: SoundEvent) => {
-    const s = settingsRef.current;
-    const name = s.sounds[event];
-    if (s.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settingsRef.current, event);
 
   /** The end of the game, with the scores (end of `FUN_0040aa20`). */
   const finish = () => {
@@ -201,10 +181,10 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
     setInProgress(false);
     if (player < computer) {
       sound('Defeat');
-      setEnd({ outcome: 'computer', lines: [mine, yours] });
+      setEnd({ outcome: 'lose', lines: [mine, yours] });
     } else if (computer < player) {
       sound('Victory');
-      setEnd({ outcome: 'player', lines: [yours, mine] });
+      setEnd({ outcome: 'win', lines: [yours, mine] });
     } else {
       sound('Tie');
       setEnd({ outcome: 'tie', lines: [yours, mine] });
@@ -225,7 +205,7 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
       const a = squareAt(from);
       const b = squareAt(square);
       v.flyingMarker = { x: a.x + 4, y: a.y + 4 };
-      await glide(v.flyingMarker, { x: b.x + 4, y: b.y + 4 }, speed, (p) => ((v.flyingMarker = p), paint()), stale);
+      await animate(v.flyingMarker, { x: b.x + 4, y: b.y + 4 }, speed, (p) => ((v.flyingMarker = p), paint()), stale);
       if (stale()) return false;
       v.flyingMarker = null;
     }
@@ -237,7 +217,7 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
       v.onBoard.delete(square);
       const target = piece.side === 0 ? slot(PLAYER, before.player) : slot(COMPUTER, before.computer);
       if (speed > 0) {
-        await glide(piece.at, target, speed, (p) => ((piece.at = p), paint()), stale);
+        await animate(piece.at, target, speed, (p) => ((piece.at = p), paint()), stale);
         if (stale()) return false;
       }
       piece.at = target;
@@ -283,18 +263,13 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
     }
   };
 
+  const exit = useStartExit('Push-Pull', settings, onExit);
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    sound('Push-Pull Start');
     newGame();
   });
-
-  const exit = () => {
-    sound('Push-Pull Exit');
-    onExit();
-  };
   const askNewGame = () => (inProgress ? setOpen('abandon') : newGame());
 
   useEffect(() => {
@@ -385,55 +360,29 @@ export default function PushPull({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title="Push-Pull"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                newGame();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            newGame();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Push-Pull"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              The marker moves to any of the eight squares around it that it has not visited yet. Your pieces are the
-              ones of the horizontal rows: each one captured, by you or by the computer, is a point for you.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Push-Pull"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="The marker moves to any of the eight squares around it that it has not visited yet. Your pieces are the ones of the horizontal rows: each one captured, by you or by the computer, is a point for you."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Push-Pull"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <AboutText title="Push-Pull" />
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Push-Pull" onClose={() => setOpen(null)} />}
 
-      {end && <EndDialog outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
+      {end && <EndDialog title="Push-Pull" outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
     </Window>
   );
 }

@@ -1,6 +1,6 @@
 // The window of Engulf (`FUN_00401000`, drawn by `FUN_004039e0` and `FUN_00403c10`): 512×302.
-import type { Point } from '../reversi/shared/animate.ts';
-import { SQUARE } from '../reversi/shared/assets.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { SQUARE } from '../../shell/czgame/pieces.ts';
 import { xOf, yOf } from './logic.ts';
 
 export const WIDTH = 512;

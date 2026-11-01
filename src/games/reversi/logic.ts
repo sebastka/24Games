@@ -1,5 +1,6 @@
 // Rules of Reversi Plus and its computer player, as the original reversi.exe implements them (see
 // docs/games/reversi.md for the functions this follows). Pure: every action returns a new board.
+import type { Rand } from '../../shell/random.ts';
 
 /** A square's content: the player's piece, the computer's, or nothing (the AI's own encoding). */
 export const PLAYER = 1;
@@ -9,18 +10,6 @@ export type Side = typeof PLAYER | typeof COMPUTER;
 
 /** 64 squares, row by row (index = y * 8 + x). */
 export type Board = readonly number[];
-
-/** MSVC's `rand()`: an integer in 0…32767. Injected so that games and tests can be replayed. */
-export type Rand = () => number;
-
-/** The C runtime's `rand()`, seeded like `srand(seed)`: what the original draws its numbers from. */
-export function msvcRand(seed: number): Rand {
-  let state = seed >>> 0;
-  return () => {
-    state = (Math.imul(state, 0x343fd) + 0x269ec3) >>> 0;
-    return (state >>> 16) & 0x7fff;
-  };
-}
 
 /**
  * The start position (`FUN_0040a3d0`): the four centre squares, crossed (the default: the computer

@@ -1,7 +1,7 @@
 // The layout of the game window's client area (`FUN_00409920`, drawn by `FUN_0040b520`).
+import type { Point } from '../../shell/czgame/animate.ts';
+import { PIECE, SQUARE } from '../../shell/czgame/pieces.ts';
 import { COMPUTER, PLAYER, type Side } from './logic.ts';
-import type { Point } from './shared/animate.ts';
-import { PIECE, SQUARE } from './shared/assets.ts';
 
 export const WIDTH = 560;
 export const HEIGHT = 342;

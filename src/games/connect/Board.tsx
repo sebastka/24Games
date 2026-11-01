@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFitScale, useImage } from '../../shell/canvas.ts';
-import type { Point } from '../reversi/shared/animate.ts';
-import { BOARD_SHEET, PIECE, PIECE_SHEETS, SQUARE } from '../reversi/shared/assets.ts';
-import { MAROON } from '../reversi/shared/draw.ts';
-import { usePieces } from '../reversi/shared/sprites.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { MAROON } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, PIECE, SQUARE, usePieces } from '../../shell/czgame/pieces.ts';
 import { HEIGHT, pieceAt, WIDTH } from './layout.ts';
 import { COLUMNS, EMPTY, PLAYER, ROWS, type Side } from './logic.ts';
 
@@ -27,7 +26,7 @@ export function Board(props: {
   const box = useRef<HTMLDivElement>(null);
   const scale = useFitScale(box, WIDTH, HEIGHT);
   const sheet = useImage(BOARD_SHEET);
-  const pieces = usePieces(PIECE_SHEETS[props.pieceSet]!);
+  const pieces = usePieces(props.pieceSet);
   const [hover, setHover] = useState(-1);
 
   useEffect(() => {
@@ -35,8 +34,7 @@ export function Board(props: {
     if (!ctx || !sheet || !pieces) return;
     const square = (first: boolean, x: number, y: number) =>
       ctx.drawImage(sheet, props.board * 2 * SQUARE + (first ? 0 : SQUARE), 0, SQUARE, SQUARE, x, y, SQUARE, SQUARE);
-    const piece = (side: number, at: Point) =>
-      ctx.drawImage(pieces, side === PLAYER ? 0 : PIECE, 0, PIECE, PIECE, at.x, at.y, PIECE, PIECE);
+    const piece = (side: number, at: Point) => ctx.drawImage(pieces[side === PLAYER ? 0 : 1], at.x, at.y, PIECE, PIECE);
     ctx.font = 'bold 30px Arial, Helvetica, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

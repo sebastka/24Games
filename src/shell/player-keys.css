@@ -1,0 +1,58 @@
+/* Options › Keys (PlayerKeys.tsx). */
+
+.player-keys.rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-keys.rows .key-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.player-keys.rows .key-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-weight: bold;
+}
+
+.player-keys.rows .key-choice select {
+  font-weight: normal;
+}
+
+.player-keys.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.player-keys.columns .key-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.player-keys.columns .key-group + .key-group {
+  padding-top: 16px;
+}
+
+.player-keys.columns .key-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-keys.columns select {
+  width: 80px;
+}
+
+.player-keys[disabled] {
+  opacity: 0.6;
+}

@@ -5,21 +5,22 @@ import tiles2 from '../../assets/voracity/tiles-2.png';
 import tiles3 from '../../assets/voracity/tiles-3.png';
 import tiles4 from '../../assets/voracity/tiles-4.png';
 import tiles5 from '../../assets/voracity/tiles-5.png';
-import codezone from '../../assets/shared/codezone.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { CONFIRM_NEW, ConfirmBox, MessageBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle, useFitScale, useImage } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { bevel } from '../../shell/czgame/draw.ts';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { backgroundStyle, bevel } from '../wari/czgame.ts';
-import { AboutText } from '../wari/czgame.tsx';
-import { EnterName, HallOfFame } from './HighScores.tsx';
-import { canMove, cell, DIRECTIONS, enter, isOver, KEYS, move, newGame, place, type State } from './logic.ts';
+import { canMove, cell, DIRECTIONS, isOver, KEYS, move, newGame, type State } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
 import { loadSettings, saveSettings, type Settings, type SoundEvent } from './settings.ts';
 import './style.css';
 
-const INFO = gameById('voracity')!;
+const ID = 'voracity';
+const INFO = gameById(ID)!;
 const SHEETS = [tiles0, tiles1, tiles2, tiles3, tiles4, tiles5];
 const TILE = 16;
 /** The target's tile in a set (the digits are 1-9, an eaten square 0). */
@@ -29,16 +30,13 @@ const TARGET = 10;
 const width = (size: number) => size * TILE + 8;
 const height = (size: number) => size * TILE + 9;
 
-const FRAME = ['#ffffff', '#808080', '#ffffff', '#808080'];
-const SUNKEN = ['#808080', '#ffffff', '#808080', '#ffffff'];
-
 /** The board (`FUN_00408590`): a raised frame, a sunken one, the tiles. */
 function draw(ctx: CanvasRenderingContext2D, s: State, sheet: HTMLImageElement) {
   const side = s.size * TILE;
   ctx.fillStyle = '#c0c0c0';
   ctx.fillRect(0, 0, width(s.size), height(s.size));
-  bevel(ctx, { left: 0, top: 0, right: side + 7, bottom: side + 7 }, 1, '#c0c0c0', FRAME);
-  bevel(ctx, { left: 3, top: 3, right: side + 4, bottom: side + 4 }, 1, '#c0c0c0', SUNKEN);
+  bevel(ctx, { left: 0, top: 0, right: side + 7, bottom: side + 7 }, 1);
+  bevel(ctx, { left: 3, top: 3, right: side + 4, bottom: side + 4 }, 1, undefined, 'sunken');
   for (let x = 0; x < s.size; x++) {
     for (let y = 0; y < s.size; y++) {
       const tile = x === s.x && y === s.y ? TARGET : cell(s, x, y);
@@ -64,7 +62,10 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
   const scale = useFitScale(box, w, h);
   const sheet = useImage(SHEETS[settings.tiles]!);
 
+  // The Hall of Fame of each board size (kept with the settings before).
+  const [scores, setScores] = useState(() => loadScores(ID, ID));
   useEffect(() => saveSettings(settings), [settings]);
+  useEffect(() => saveScores(ID, scores), [scores]);
 
   const redraw = useCallback(() => {
     const ctx = canvas.current?.getContext('2d');
@@ -72,22 +73,8 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
   }, [game, sheet]);
   useEffect(redraw, [redraw, scale]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
-
-  const started = useRef(false);
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    sound('Voracity Start');
-  });
-
-  const exit = () => {
-    sound('Voracity Exit');
-    onExit();
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
+  const exit = useStartExit('Voracity', settings, onExit);
 
   const restart = (s: Settings = settings) => {
     setGame(newGame(s.size, Math.random));
@@ -110,7 +97,7 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
     setGame(next);
     if (!isOver(next)) return;
     setInProgress(false);
-    if (place(settings.scores[next.size] ?? [], next.score) >= 0) {
+    if (placeOf(tableOf(scores, next.size), next.score) >= 0) {
       sound('Game Over - High Score');
       setOpen('name');
     } else {
@@ -142,7 +129,7 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
     if (direction && canMove(game, direction[0], direction[1])) go(direction[0], direction[1]);
   };
 
-  const table = settings.scores[game.size] ?? [];
+  const table = tableOf(scores, game.size);
   return (
     <Window
       title={`Voracity Score - ${game.score}`}
@@ -198,39 +185,27 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title="Voracity"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                restart();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            restart();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'no-moves' && (
-        <Dialog title="Voracity" buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}>
-          <p className="message no-moves">You have no more moves available.</p>
-        </Dialog>
+        <MessageBox title="Voracity" icon="info" text="You have no more moves available." onOk={() => setOpen(null)} />
       )}
 
       {open === 'name' && (
-        <EnterName
-          name={settings.playerName}
+        <NewHighScore
+          name={scores.player}
           onOk={(name) => {
-            setSettings({
-              ...settings,
-              playerName: name,
-              scores: { ...settings.scores, [game.size]: enter(table, { name, score: game.score }) },
-            });
+            const place = placeOf(table, game.score);
+            if (place >= 0) setScores(record(scores, game.size, place, name, game.score));
             setOpen(null);
           }}
         />
@@ -240,37 +215,21 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title={`Hall of Fame - ${sizeName(game.size)}`}
           table={table}
-          onClear={() => setSettings({ ...settings, scores: { ...settings.scores, [game.size]: [] } })}
+          onClear={() => setScores(cleared(scores, game.size))}
           onClose={() => setOpen(null)}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Voracity"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>Keyboard: the digits as on a numeric keypad (8 up, 2 down, 7 up-left…) or the arrow keys.</p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Voracity"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Keyboard: the digits as on a numeric keypad (8 up, 2 down, 7 up-left…) or the arrow keys."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Voracity"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <AboutText title="Voracity" />
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Voracity" onClose={() => setOpen(null)} />}
     </Window>
   );
 }

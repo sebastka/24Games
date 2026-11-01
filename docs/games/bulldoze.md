@@ -2,6 +2,14 @@
 
 Sokoban with a bulldozer: push all the rocks onto the targets.
 
+| The original, under Wine                                          | The web version                               |
+| ----------------------------------------------------------------- | --------------------------------------------- |
+| ![Level 1 in the original](../images/original-bulldozer-wine.png) | ![Level 1 completed](../images/bulldozer.png) |
+
+On a phone, the on-screen pad appears under the play field:
+
+![Bulldozer on a phone](../images/bulldozer-phone.png)
+
 ## Data
 
 - **Levels**: type 273, ids 301-360 (levels 1-60) and 361 (the "THE END" screen after level 60).
@@ -47,12 +55,17 @@ Sokoban with a bulldozer: push all the rocks onto the targets.
 
 | Event                | Default   |
 | -------------------- | --------- |
+| Bulldozer Start      | (none)    |
+| Bulldozer Exit       | (none)    |
 | Move                 | (none)    |
 | Move Rock            | (none)    |
 | Move Rock To Target  | `click_4` |
 | Complete Level       | `crowd_3` |
 | Receive Password     | `crowd_2` |
 | Complete Final Level | `handel`  |
+
+"Bulldozer Start" plays as the window opens, "Bulldozer Exit" as it closes (`FUN_00403ff0`
+registers both first; `FUN_00404ac0` is the close handler), as in every game.
 
 ## Deviations from the original
 

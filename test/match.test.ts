@@ -1,6 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { insert, placeOf, scoreValue } from '../src/games/match/hallOfFame.ts';
 import {
   Card,
   cardAt,
@@ -90,23 +89,4 @@ test('the clock starts paused, and pauses do not count', () => {
   assert.equal(seconds(c, 21_000), 4);
   assert.equal(formatTime(73), '1:13');
   assert.equal(formatTime(5), '0:05');
-});
-
-test('high scores: the digits are the value; a time enters before a strictly longer one', () => {
-  assert.equal(scoreValue('1:13'), 113);
-  assert.equal(scoreValue(''), -1);
-  const table = [
-    { name: 'A', score: '0:30' },
-    { name: 'B', score: '1:00' },
-  ];
-  assert.equal(placeOf(table, '0:45', false), 1);
-  assert.equal(placeOf(table, '1:00', false), 2, 'a tie goes after');
-  assert.equal(placeOf(table, '2:00', false), 2, 'an empty place');
-  const full = Array.from({ length: 10 }, (_, i) => ({ name: `${i}`, score: `0:${10 + i}` }));
-  assert.equal(placeOf(full, '0:30', false), -1);
-  assert.equal(placeOf(full, '0:30', true), 0);
-  const after = insert(full, 0, { name: 'X', score: '0:05' });
-  assert.equal(after.length, 10);
-  assert.equal(after[0]!.name, 'X');
-  assert.equal(after[9]!.name, '8');
 });

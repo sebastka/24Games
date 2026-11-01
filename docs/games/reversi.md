@@ -7,7 +7,7 @@ the end wins.
 
 Reversi Plus, Checker Connector, Engulf and Core Meltdown are built on the same framework (each
 executable has its own copy), whose web counterpart is
-[src/games/reversi/shared](../../src/games/reversi/shared):
+[src/shell/czgame](../../src/shell/czgame), with the dialogs in [src/shell](../../src/shell):
 
 - **Defaults** come from the main window's help id (`FUN_004014d0`, `FUN_00408450`,
   `FUN_00408d90`): background = id / 100, board = id / 10 % 10, piece set = id % 10, used when
@@ -110,6 +110,5 @@ the same `rand()` calls, so that a seeded game replays exactly.
   after the other without delay, restarting the sound for each).
 - The computer thinks for at least 50 ms (the original as long as its search took).
 - Settings are kept in localStorage at once (the original writes some at exit).
-- The end-of-game dialogs have a title bar with the game's name.
 - Help offers "How to Play" and "About" (the original's WinHelp index, rules and Balloon Help are
   not converted).

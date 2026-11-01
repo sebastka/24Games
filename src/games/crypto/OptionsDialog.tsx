@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
+import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { Label } from '../../shell/Window.tsx';
 import type { Skill } from './logic.ts';
 import type { Settings } from './settings.ts';
-import { SoundsTab } from './SoundsTab.tsx';
 
 const LEVELS: [Skill, string][] = [
   [1, 'Ea~sy'],
@@ -58,7 +58,9 @@ export function OptionsDialog(props: { settings: Settings; onOk: (s: Settings) =
           { label: '~Options', content: options },
           {
             label: '~Extras',
-            content: <SoundsTab value={draft} onChange={(extras) => setDraft({ ...draft, ...extras })} />,
+            content: (
+              <ExtrasTab value={draft} background={false} onChange={(extras) => setDraft({ ...draft, ...extras })} />
+            ),
           },
         ]}
       />

@@ -1,11 +1,11 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { isKey, KEY_NAMES } from '../../shell/keys.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
 import type { Action } from './logic.ts';
 
 /** Sound events, with the original's defaults (stackblz.exe registers them at start, FUN_00407c80). */
-export const SOUND_EVENTS = {
-  'StackBlitz Start': '',
-  'StackBlitz Exit': '',
+export const SOUND_EVENTS = soundEvents('StackBlitz', {
   'Rotate Up': 'click_5',
   'Rotate Down': 'click_4',
   'Piece Landing': 'click_1',
@@ -15,40 +15,11 @@ export const SOUND_EVENTS = {
   Bomb: 'pop3',
   'New Level': 'laugh_1',
   'Game Over': 'dig_7',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 /** Piece sets (type 273 id 256), StarView bitmaps 300-306: rows of pieces.png. */
 export const PIECE_SETS = ['Circles', 'Squares', 'Faces', 'Bevels', 'Traffic', 'Flags', 'Monochrome'];
-
-/**
- * The keys Options › Keys offers (names at 0x4111c8, StarView key codes at 0x4112e0), with the
- * browser's `KeyboardEvent.key` for each.
- */
-export const KEYS: readonly (readonly [name: string, key: string])[] = [
-  ['Up', 'ArrowUp'],
-  ['Down', 'ArrowDown'],
-  ['Left', 'ArrowLeft'],
-  ['Right', 'ArrowRight'],
-  ...'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((c) => [c, c] as const),
-  ...Array.from({ length: 12 }, (_, i) => [`F${i + 1}`, `F${i + 1}`] as const),
-  ['Home', 'Home'],
-  ['End', 'End'],
-  ['Page Up', 'PageUp'],
-  ['Page Down', 'PageDown'],
-  ['Return', 'Enter'],
-  ['ESC', 'Escape'],
-  ['Tab', 'Tab'],
-  ['Backspace', 'Backspace'],
-  ['Space', ' '],
-  ['Insert', 'Insert'],
-  ['Delete', 'Delete'],
-  ['-', '-'],
-  ['/', '/'],
-  ['.', '.'],
-  [',', ','],
-  ['=', '='],
-];
 
 /** The five game keys, in the order of the Keys tab's registry values. */
 export const KEY_ACTIONS: readonly { action: Action; label: string }[] = [
@@ -59,12 +30,12 @@ export const KEY_ACTIONS: readonly { action: Action; label: string }[] = [
   { action: 'rotateDown', label: 'Rotate Down' },
 ];
 
-const keyIndex = (name: string): number => KEYS.findIndex(([n]) => n === name);
+const keyIndex = (name: string): number => KEY_NAMES.indexOf(name);
 
 export interface Settings extends Extras {
   /** Row of pieces.png (registry PieceToUse). */
   pieceSet: number;
-  /** Index in KEYS of each action's key (registry KeyLeft, KeyRight…). */
+  /** Index in KEY_NAMES of each action's key (registry KeyLeft, KeyRight…). */
   keys: Record<Action, number>;
 }
 
@@ -94,8 +65,6 @@ export function loadSettings(): Settings {
 
 export const saveSettings = (s: Settings): void => save(KEY, s);
 
-/** The action bound to a key event (letters case-insensitive), if any. */
-export function actionFor(keys: Settings['keys'], key: string): Action | undefined {
-  const k = key.length === 1 ? key.toUpperCase() : key;
-  return KEY_ACTIONS.find(({ action }) => KEYS[keys[action]]?.[1] === k)?.action;
-}
+/** The action bound to a key event, if any. */
+export const actionFor = (keys: Settings['keys'], e: { code: string }): Action | undefined =>
+  KEY_ACTIONS.find(({ action }) => isKey(e, KEY_NAMES[keys[action]] ?? ''))?.action;

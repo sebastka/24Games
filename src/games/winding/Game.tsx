@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
+import { backgroundStyle, useFitScale, useImage } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { animate, type Point } from '../../shell/czgame/animate.ts';
+import { BOARD_SHEET, drawSquare, usePieces } from '../../shell/czgame/pieces.ts';
+import { EndDialog, type Outcome } from '../../shell/EndDialog.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
-import { backgroundStyle, BOARD_SHEET, drawSquare, glide, usePieces, type Outcome } from '../wari/czgame.ts';
-import { AboutText, EndDialog } from '../wari/czgame.tsx';
 import {
   computerMove,
   computerPlacement,
@@ -34,11 +35,6 @@ const HEIGHT = 400;
 const SQUARE = 40;
 /** How often the drag and drop zones flash (ms). */
 const FLASH_MS = 250;
-
-interface Point {
-  x: number;
-  y: number;
-}
 
 const squareAt = (i: number): Point => ({ x: PATH[i]![0] * SQUARE, y: PATH[i]![1] * SQUARE });
 /** A piece's place in the store: the player's on the upper row, the computer's on the lower. */
@@ -158,11 +154,7 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
     return () => clearInterval(timer);
   }, []);
 
-  const sound = (event: SoundEvent) => {
-    const s = settingsRef.current;
-    const name = s.sounds[event];
-    if (s.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settingsRef.current, event);
 
   /** A piece glides from `from` to `to` at the animation speed. */
   const slide = async (key: string, from: Point, to: Point, g: number) => {
@@ -170,7 +162,7 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
     if (speed <= 0) return;
     const v = view.current;
     v.moving.set(key, from);
-    await glide(
+    await animate(
       from,
       to,
       speed,
@@ -204,11 +196,11 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
     }
     const move = computerMove(v.state, skill, Math.random);
     if (move === 'stuck') {
-      finish('player', ['Computer can', 'no longer move.'], 'Victory');
+      finish('win', ['Computer can', 'no longer move.'], 'Victory');
       return;
     }
     if (move === 'resign') {
-      finish('player', ['Computer', 'Resigns.'], 'Victory');
+      finish('win', ['Computer', 'Resigns.'], 'Victory');
       return;
     }
     const k = v.state.computer.indexOf(move.from);
@@ -217,7 +209,7 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
     if (generation.current !== g) return;
     v.state = moveComputer(v.state, move.from, move.to);
     paint();
-    if (!playerCanMove(v.state)) finish('computer', ['Player can', 'no longer move.'], 'Defeat');
+    if (!playerCanMove(v.state)) finish('lose', ['Player can', 'no longer move.'], 'Defeat');
   };
 
   const runComputer = async () => {
@@ -240,18 +232,13 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
     if (!s.playerFirst) void runComputer();
   };
 
+  const exit = useStartExit('Winding Standoff', settings, onExit);
   const started = useRef(false);
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    sound('Winding Standoff Start');
     newGame();
   });
-
-  const exit = () => {
-    sound('Winding Standoff Exit');
-    onExit();
-  };
   const askNewGame = () => (inProgress ? setOpen('abandon') : newGame());
 
   useEffect(() => {
@@ -410,55 +397,29 @@ export default function WindingStandoff({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'abandon' && (
-        <Dialog
+        <ConfirmBox
           title="Winding Standoff"
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                setOpen(null);
-                newGame();
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            setOpen(null);
+            newGame();
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title="How to Play Winding Standoff"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Drag your pieces with the mouse or a finger: from the middle of the board to your squares first, then
-              along the path, any number of free squares.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title="Winding Standoff"
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Drag your pieces with the mouse or a finger: from the middle of the board to your squares first, then along the path, any number of free squares."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title="About Winding Standoff"
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <AboutText title="Winding Standoff" />
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title="Winding Standoff" onClose={() => setOpen(null)} />}
 
-      {end && <EndDialog outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
+      {end && <EndDialog title="Winding Standoff" outcome={end.outcome} lines={end.lines} onOk={() => setEnd(null)} />}
     </Window>
   );
 }

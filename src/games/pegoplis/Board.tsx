@@ -1,42 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFitScale, useImages } from '../../shell/canvas.ts';
-import { BOARD_IMAGE, drawSquare, PIECE_SIZE, pieceSprites, SQUARE_SIZE } from '../quinto/sets.ts';
+import { bevel, invertOutline } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, drawSquare, PIECE, SQUARE, usePieces } from '../../shell/czgame/pieces.ts';
 import { movable, piecesLeft, targets, type Point, type State } from './logic.ts';
 
 /** The original window's client area (pegoplis.exe's window resource): 512×342. */
 export const WIDTH = 512;
 export const HEIGHT = 342;
-const FACE = '#c0c0c0';
-const LIGHT = '#ffffff';
 const SHADOW = '#808080';
 const SIDE = 0x158;
 const RIGHT = 0x1fc;
-
-/** A raised frame (`FUN_004086b0`): face colour, `width` pixels of light top-left, shadow bottom-right. */
-function frame(ctx: CanvasRenderingContext2D, x: number, y: number, right: number, bottom: number, width: number) {
-  const w = right - x + 1;
-  const h = bottom - y + 1;
-  ctx.fillStyle = FACE;
-  ctx.fillRect(x, y, w, h);
-  for (let i = 0; i < width; i++) {
-    ctx.fillStyle = LIGHT;
-    ctx.fillRect(x + i, y + i, w - 2 * i, 1);
-    ctx.fillRect(x + i, y + i, 1, h - 2 * i);
-    ctx.fillStyle = SHADOW;
-    ctx.fillRect(x + i, bottom - i, w - 2 * i, 1);
-    ctx.fillRect(right - i, y + i, 1, h - 2 * i);
-  }
-}
-
-/** The zones' mark (`FUN_0040afa0`): a 3-pixel rectangle, inverting what is under it. */
-function invertRing(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  ctx.save();
-  ctx.globalCompositeOperation = 'difference';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
-  ctx.restore();
-}
 
 /** The board's top-left corner (`FUN_004015a0`): centred in the 342-pixel square on the left. */
 const originOf = (state: State) => ({ x: 171 - 20 * state.width, y: 171 - 20 * state.height });
@@ -57,7 +30,7 @@ export function Board(props: {
   state: State;
   text: string;
   preview: string;
-  pieceSet: string;
+  pieceSet: number;
   boardSet: number;
   dragBitmaps: boolean;
   showDragZones: boolean;
@@ -69,8 +42,8 @@ export function Board(props: {
   const { state, boardSet } = props;
   const canvas = useRef<HTMLCanvasElement>(null);
   const box = useRef<HTMLDivElement>(null);
-  const images = useImages([props.pieceSet, BOARD_IMAGE, props.preview]);
-  const sprites = useMemo(() => (images ? pieceSprites(images[0]!) : null), [images]);
+  const images = useImages([BOARD_SHEET, props.preview]);
+  const sprites = usePieces(props.pieceSet);
   const scale = useFitScale(box, WIDTH, HEIGHT, 60);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [hover, setHover] = useState<Point | null>(null);
@@ -81,18 +54,18 @@ export function Board(props: {
   useEffect(() => {
     const ctx = canvas.current?.getContext('2d');
     if (!ctx || !images || !sprites) return;
-    const [, boards, preview] = images as HTMLImageElement[];
+    const [boards, preview] = images as HTMLImageElement[];
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     state.cells.forEach((cell, i) => {
       if (cell.square === null) return;
-      const [x, y] = [o.x + (i % state.width) * SQUARE_SIZE, o.y + Math.floor(i / state.width) * SQUARE_SIZE];
+      const [x, y] = [o.x + (i % state.width) * SQUARE, o.y + Math.floor(i / state.width) * SQUARE];
       drawSquare(ctx, boards!, boardSet, cell.square, x, y);
       const dragged = drag && props.dragBitmaps && i === drag.from.y * state.width + drag.from.x;
       if (cell.piece !== null && !dragged) ctx.drawImage(sprites[cell.piece], x + 4, y + 4);
     });
 
     // The description, line by line from (349, 9), 16 pixels apart.
-    frame(ctx, SIDE, 4, RIGHT, 0xe0, 2);
+    bevel(ctx, { left: SIDE, top: 4, right: RIGHT, bottom: 0xe0 }, 2);
     ctx.fillStyle = '#000000';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
@@ -102,7 +75,7 @@ export function Board(props: {
     // The pieces remaining, or the goal pattern (FUN_00402db0).
     const top = 0xe4;
     const bottom = HEIGHT - 4;
-    frame(ctx, SIDE, top, RIGHT, bottom, 2);
+    bevel(ctx, { left: SIDE, top, right: RIGHT, bottom }, 2);
     ctx.font = '13px Arial, Helvetica, sans-serif';
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
@@ -127,16 +100,16 @@ export function Board(props: {
 
     // Show Drag Zones: the movable piece under the pointer; Show Drop Zones: the square under it.
     if (!drag && hover && props.showDragZones && zones.some((z) => z.x === hover.x && z.y === hover.y)) {
-      invertRing(ctx, o.x + hover.x * SQUARE_SIZE + 4, o.y + hover.y * SQUARE_SIZE + 4, PIECE_SIZE, PIECE_SIZE);
+      invertOutline(ctx, o.x + hover.x * SQUARE + 4, o.y + hover.y * SQUARE + 4, PIECE, PIECE);
     }
     if (drag && hover && props.showDropZones && drops.some((z) => z.x === hover.x && z.y === hover.y)) {
-      invertRing(ctx, o.x + hover.x * SQUARE_SIZE, o.y + hover.y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+      invertOutline(ctx, o.x + hover.x * SQUARE, o.y + hover.y * SQUARE, SQUARE, SQUARE);
     }
     if (drag) {
       const [x, y] = [drag.at.x - drag.grab.x, drag.at.y - drag.grab.y];
       const piece = state.cells[drag.from.y * state.width + drag.from.x]!.piece;
       if (props.dragBitmaps && piece !== null) ctx.drawImage(sprites[piece], x, y);
-      else invertRing(ctx, x, y, PIECE_SIZE, PIECE_SIZE);
+      else invertOutline(ctx, x, y, PIECE, PIECE);
     }
   }, [
     state,
@@ -163,7 +136,7 @@ export function Board(props: {
     };
   };
   const squareAt = (p: Point): Point | null => {
-    const [x, y] = [Math.floor((p.x - o.x) / SQUARE_SIZE), Math.floor((p.y - o.y) / SQUARE_SIZE)];
+    const [x, y] = [Math.floor((p.x - o.x) / SQUARE), Math.floor((p.y - o.y) / SQUARE)];
     return p.x >= o.x && p.y >= o.y && x < state.width && y < state.height ? { x, y } : null;
   };
 
@@ -182,16 +155,16 @@ export function Board(props: {
           const onPiece =
             sq &&
             zones.some((z) => z.x === sq.x && z.y === sq.y) &&
-            p.x >= o.x + sq.x * SQUARE_SIZE + 4 &&
-            p.x < o.x + sq.x * SQUARE_SIZE + 4 + PIECE_SIZE &&
-            p.y >= o.y + sq.y * SQUARE_SIZE + 4 &&
-            p.y < o.y + sq.y * SQUARE_SIZE + 4 + PIECE_SIZE;
+            p.x >= o.x + sq.x * SQUARE + 4 &&
+            p.x < o.x + sq.x * SQUARE + 4 + PIECE &&
+            p.y >= o.y + sq.y * SQUARE + 4 &&
+            p.y < o.y + sq.y * SQUARE + 4 + PIECE;
           if (!onPiece) {
             props.onMiss();
             return;
           }
           e.currentTarget.setPointerCapture(e.pointerId);
-          const grab = { x: p.x - (o.x + sq.x * SQUARE_SIZE + 4), y: p.y - (o.y + sq.y * SQUARE_SIZE + 4) };
+          const grab = { x: p.x - (o.x + sq.x * SQUARE + 4), y: p.y - (o.y + sq.y * SQUARE + 4) };
           setDrag({ from: sq, at: p, grab });
           setHover(sq);
           props.onDragStart();

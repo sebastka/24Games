@@ -1,11 +1,10 @@
 import type { Extras } from '../../shell/ExtrasTab.tsx';
+import { KEY_NAMES } from '../../shell/keys.ts';
+import { soundEvents } from '../../shell/soundEvents.ts';
 import { load, save } from '../../shell/storage.ts';
-import { KEY_NAMES } from '../cheesy/common/keys.ts';
 
 /** Sound events, with the original's defaults (thinktnk.exe registers them at start). */
-export const SOUND_EVENTS = {
-  'Think Tank Start': '',
-  'Think Tank Exit': '',
+export const SOUND_EVENTS = soundEvents('Think Tank', {
   'Begin Level': 'charge',
   'Level Complete': 'crowd_4',
   'Player Fires Gun': 'gunshot',
@@ -18,7 +17,7 @@ export const SOUND_EVENTS = {
   'Enemy Destroyed': 'gunshot6',
   'Player Destroyed': 'gunshot2',
   Defeat: 'dig_7',
-};
+});
 export type SoundEvent = keyof typeof SOUND_EVENTS;
 
 export type Action = 'up' | 'down' | 'left' | 'right' | 'fire';

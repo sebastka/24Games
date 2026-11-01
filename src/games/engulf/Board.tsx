@@ -1,23 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import logoUrl from '../../assets/engulf/logo.png';
-import { useFitScale, useImage } from '../../shell/canvas.ts';
-import type { Point } from '../reversi/shared/animate.ts';
-import { BOARD_SHEET, PIECE, PIECE_SHEETS, SQUARE } from '../reversi/shared/assets.ts';
-import { bevel, centeredText, fillBackground, NAVY, textureOf } from '../reversi/shared/draw.ts';
-import { usePieces } from '../reversi/shared/sprites.ts';
+import { fillBackground, textureOf, useFitScale, useImage } from '../../shell/canvas.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { bevel, centeredText, invertOutline, NAVY } from '../../shell/czgame/draw.ts';
+import { BOARD_SHEET, PIECE, SQUARE, usePieces } from '../../shell/czgame/pieces.ts';
 import { FRAME, HEIGHT, LOGO_AT, ORIGIN, PANELS, pieceAt, SCORE_BOX, WIDTH } from './layout.ts';
 import { at, BLOCKED, COMPUTER, PLAYER, SIZE, type Board as Squares, type Move, type Side } from './logic.ts';
 
 const inside = (p: Point, corner: Point): boolean =>
   p.x >= corner.x && p.x < corner.x + PIECE && p.y >= corner.y && p.y < corner.y + PIECE;
-
-/** Inverts a 3-pixel frame straddling a piece's square (the framework's XOR zone, style 3). */
-function invertFrame(ctx: CanvasRenderingContext2D, c: Point): void {
-  ctx.fillRect(c.x - 1, c.y - 1, PIECE + 2, 3);
-  ctx.fillRect(c.x - 1, c.y + PIECE - 2, PIECE + 2, 3);
-  ctx.fillRect(c.x - 1, c.y + 2, 3, PIECE - 4);
-  ctx.fillRect(c.x + PIECE - 2, c.y + 2, 3, PIECE - 4);
-}
 
 interface Drag {
   from: number;
@@ -54,15 +45,14 @@ export function Board(props: {
   const sheet = useImage(BOARD_SHEET);
   const logo = useImage(logoUrl);
   const texture = useImage(textureOf(props.background));
-  const pieces = usePieces(PIECE_SHEETS[props.pieceSet]!);
+  const pieces = usePieces(props.pieceSet);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [hover, setHover] = useState<Point | null>(null);
 
   useEffect(() => {
     const ctx = canvas.current?.getContext('2d');
     if (!ctx || !sheet || !pieces) return;
-    const piece = (side: number, p: Point) =>
-      ctx.drawImage(pieces, side === PLAYER ? 0 : PIECE, 0, PIECE, PIECE, p.x, p.y, PIECE, PIECE);
+    const piece = (side: number, p: Point) => ctx.drawImage(pieces[side === PLAYER ? 0 : 1], p.x, p.y, PIECE, PIECE);
     fillBackground(ctx, props.background, texture, WIDTH, HEIGHT);
     bevel(ctx, FRAME, 4);
     for (let x = 0; x < SIZE; x++) {
@@ -76,32 +66,42 @@ export function Board(props: {
     });
     if (logo) ctx.drawImage(logo, LOGO_AT.x, LOGO_AT.y);
     bevel(ctx, SCORE_BOX, 2);
-    centeredText(ctx, 'SCORE', SCORE_BOX, 'bold 22px Arial, Helvetica, sans-serif', '#ff0000', true);
+    centeredText(ctx, 'SCORE', SCORE_BOX, {
+      font: 'bold 22px Arial, Helvetica, sans-serif',
+      color: '#ff0000',
+      shadow: true,
+    });
     PANELS.forEach((p, i) => {
       bevel(ctx, p.box, 2);
       const label = 'bold 20px Arial, Helvetica, sans-serif';
-      centeredText(ctx, i === 0 ? 'Computer' : 'Player', p.name, label, NAVY, true);
-      centeredText(ctx, 'Score', p.score, label, NAVY, true);
-      bevel(ctx, p.count, 2, undefined, true);
+      centeredText(ctx, i === 0 ? 'Computer' : 'Player', p.name, { font: label, color: NAVY, shadow: true });
+      centeredText(ctx, 'Score', p.score, { font: label, color: NAVY, shadow: true });
+      bevel(ctx, p.count, 2, undefined, 'sunken');
       const n = squares.filter((c) => c === (i === 0 ? COMPUTER : PLAYER)).length;
-      centeredText(ctx, String(n), p.count, 'bold 40px Arial, Helvetica, sans-serif', NAVY, true);
+      centeredText(ctx, String(n), p.count, {
+        font: 'bold 40px Arial, Helvetica, sans-serif',
+        color: NAVY,
+        shadow: true,
+      });
     });
     if (moving) piece(moving.side, moving.at);
 
-    // The zones under the pointer (Options › Animation › Show Drag/Drop Zones), inverted.
+    // The zones under the pointer (Options › Animation › Show Drag/Drop Zones), inverted: a
+    // 3-pixel frame straddling a piece's square (the framework's XOR zone, style 3).
+    const frame = (c: Point) => invertOutline(ctx, c.x - 1, c.y - 1, PIECE + 2, PIECE + 2);
     ctx.save();
     ctx.globalCompositeOperation = 'difference';
     ctx.fillStyle = '#ffffff';
     if (drag && hover && props.showDropZones) {
       const target = moves.find((m) => m.from === drag.from && inside(hover, pieceAt(m.to)));
-      if (target?.jump) invertFrame(ctx, pieceAt(target.to));
+      if (target?.jump) frame(pieceAt(target.to));
       else if (target) ctx.fillRect(pieceAt(target.to).x, pieceAt(target.to).y, PIECE, PIECE);
     } else if (!drag && hover && props.showDragZones) {
       const zone = moves.find((m) => inside(hover, pieceAt(m.from)));
-      if (zone) invertFrame(ctx, pieceAt(zone.from));
+      if (zone) frame(pieceAt(zone.from));
     }
     if (drag && !props.dragBitmaps) {
-      invertFrame(ctx, { x: drag.pointer.x - drag.grab.x, y: drag.pointer.y - drag.grab.y });
+      frame({ x: drag.pointer.x - drag.grab.x, y: drag.pointer.y - drag.grab.y });
     }
     ctx.restore();
     if (drag && props.dragBitmaps) piece(PLAYER, { x: drag.pointer.x - drag.grab.x, y: drag.pointer.y - drag.grab.y });

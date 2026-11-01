@@ -1,5 +1,6 @@
 // Rules of Engulf and its computer player, as the original engulf.exe implements them (see
 // docs/games/engulf.md for the functions this follows). Pure: every action returns a new board.
+import type { Rand } from '../../shell/random.ts';
 
 export const SIZE = 7;
 
@@ -12,9 +13,6 @@ export type Side = typeof PLAYER | typeof COMPUTER;
 
 /** 49 squares, column by column (index = x × 7 + y), as the engine keeps them. */
 export type Board = readonly number[];
-
-/** MSVC's `rand()`: an integer in 0…32767. */
-export type Rand = () => number;
 
 export interface Move {
   from: number;

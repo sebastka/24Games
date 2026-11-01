@@ -1,6 +1,7 @@
 // Rules of Checker Connector and its computer player, as the original connect.exe implements them
 // (see docs/games/connect.md for the functions this follows). Pure: every action returns a new
 // position.
+import type { Rand } from '../../shell/random.ts';
 
 export const COLUMNS = 7;
 export const ROWS = 6;
@@ -10,9 +11,6 @@ export const PLAYER = 1;
 export const COMPUTER = -1;
 export const EMPTY = 0;
 export type Side = typeof PLAYER | typeof COMPUTER;
-
-/** MSVC's `rand()`: an integer in 0…32767. */
-export type Rand = () => number;
 
 /**
  * The original's position (a 64-byte structure at 0x411000): cells column by column, bottom up

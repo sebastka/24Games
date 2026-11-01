@@ -12,11 +12,10 @@ import {
   ROWS,
   step,
   type GameEvent,
-  type Rand,
   type State,
 } from '../src/games/stackblz/logic.ts';
+import type { Rand } from '../src/shell/random.ts';
 import { actionFor, loadSettings } from '../src/games/stackblz/settings.ts';
-import { cleared, insert, loadScores, rankOf } from '../src/games/stackblz/highscores.ts';
 
 /** A rand() returning the given values in turn, then 1 (no special piece, piece 1, column 3). */
 const seq = (...values: number[]): Rand => {
@@ -212,30 +211,12 @@ test('the game is over when a stack lands with a piece on the top visible row', 
   assert.equal(act(r.state, 'left', seq()).state, r.state);
 });
 
-test('settings: the default keys, letters matched case-insensitively', () => {
+test('settings: the default keys, then any of the 68 of the Keys tab', () => {
   const { keys } = loadSettings();
-  assert.equal(actionFor(keys, 'ArrowLeft'), 'left');
-  assert.equal(actionFor(keys, 'ArrowDown'), 'rotateUp');
-  assert.equal(actionFor(keys, 'ArrowUp'), 'rotateDown');
-  assert.equal(actionFor(keys, ' '), 'drop');
-  assert.equal(actionFor({ ...keys, drop: 26 }, 'q'), undefined);
-  assert.equal(actionFor({ ...keys, drop: 30 }, 'q'), 'drop');
-});
-
-test('hall of fame: ten places, higher scores first, free places take any score', () => {
-  let hall = loadScores('test');
-  assert.equal(rankOf(hall, 0), 0);
-  hall = insert(hall, 0, 'Ann', 100);
-  hall = insert(hall, rankOf(hall, 50), 'Bob', 50);
-  hall = insert(hall, rankOf(hall, 100), 'Cy', 100);
-  assert.deepEqual(
-    hall.entries.slice(0, 3).map((e) => `${e.name} ${e.score}`),
-    ['Ann 100', 'Cy 100', 'Bob 50'],
-  );
-  assert.equal(hall.player, 'Cy');
-  for (let i = 0; i < 7; i++) hall = insert(hall, rankOf(hall, 10), 'X', 10);
-  assert.equal(rankOf(hall, 10), -1);
-  assert.equal(rankOf(hall, 11), 3);
-  assert.equal(cleared(hall).entries[0]!.score, null);
-  assert.equal(cleared(hall).player, 'X');
+  assert.equal(actionFor(keys, { code: 'ArrowLeft' }), 'left');
+  assert.equal(actionFor(keys, { code: 'ArrowDown' }), 'rotateUp');
+  assert.equal(actionFor(keys, { code: 'ArrowUp' }), 'rotateDown');
+  assert.equal(actionFor(keys, { code: 'Space' }), 'drop');
+  assert.equal(actionFor({ ...keys, drop: 26 }, { code: 'KeyQ' }), undefined);
+  assert.equal(actionFor({ ...keys, drop: 30 }, { code: 'KeyQ' }), 'drop');
 });

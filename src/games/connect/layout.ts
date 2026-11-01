@@ -1,7 +1,7 @@
 // The window of Checker Connector (`FUN_00401000`, `FUN_004015c0`): a 7×7 board of 40-pixel
 // squares filling the 280×280 client area, the letters A-G on its top row.
-import type { Point } from '../reversi/shared/animate.ts';
-import { SQUARE } from '../reversi/shared/assets.ts';
+import type { Point } from '../../shell/czgame/animate.ts';
+import { SQUARE } from '../../shell/czgame/pieces.ts';
 import { ROWS } from './logic.ts';
 
 export const WIDTH = 7 * SQUARE;

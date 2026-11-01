@@ -4,6 +4,7 @@
 //
 // Time is simulated in steps of 1 ms: a 100 ms StarView timer watches a stopwatch, and a skull
 // takes a free cell when 5 seconds go by without a piece placed.
+import type { Rand } from '../../shell/random.ts';
 
 /** A piece: colour in the low 2 bits, shape in the next 2 (0-15). On the board, piece + 1. */
 export const Cell = {
@@ -27,11 +28,6 @@ export const SLOTS = 4;
 export const TIMER_MS = 100;
 /** A skull falls when the stopwatch reaches 5 s (checked on the timer: `elapsed / 1000 > 4`). */
 export const PENALTY_MS = 5000;
-
-/** The C runtime's rand(): an integer in 0..32767. Injected, so that tests are deterministic. */
-export type Rand = () => number;
-
-export const randomRand: Rand = () => Math.floor(Math.random() * 32768);
 
 export type GameEvent = `Match ${number}` | 'Penalty' | 'Game Over';
 

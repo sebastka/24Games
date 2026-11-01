@@ -19,7 +19,7 @@ import {
   type Board,
 } from '../src/games/engulf/logic.ts';
 import { nextLayout, startingBoardFor } from '../src/games/engulf/progress.ts';
-import { msvcRand } from '../src/games/reversi/logic.ts';
+import { msvcRand } from '../src/shell/random.ts';
 
 /** A board from 7 rows of '.', '#', 'P' and 'C'. */
 const parse = (rows: string[]): Board => {

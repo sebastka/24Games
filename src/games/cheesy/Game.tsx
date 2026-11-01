@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
+import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
-import { Dialog } from '../../shell/Dialog.tsx';
-import { playSound } from '../../shell/sound.ts';
+import { EndDialog } from '../../shell/EndDialog.tsx';
+import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { isKey } from '../../shell/keys.ts';
+import { useFixedStep } from '../../shell/loop.ts';
+import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { TouchPad } from '../../shell/TouchPad.tsx';
 import { Window } from '../../shell/Window.tsx';
-import { HighScoreDialog, NameDialog } from './common/HighScores.tsx';
-import { emptyTable, insert, loadScores, placeOf, saveScores, tableOf } from './common/highscores.ts';
-import { isKey } from './common/keys.ts';
-import { LoseDialog } from './common/LoseDialog.tsx';
-import { useFixedStep } from './common/loop.ts';
-import './common/style.css';
 import { GotchaDialog, LevelDialog } from './Dialogs.tsx';
 import { Field } from './Field.tsx';
 import {
@@ -28,8 +27,9 @@ import {
   type State,
 } from './logic.ts';
 import { OptionsDialog } from './OptionsDialog.tsx';
-import './style.css';
 import { loadSettings, saveSettings, type Action, type Settings, type SoundEvent } from './settings.ts';
+import '../../shell/arcade.css';
+import './style.css';
 
 const INFO = gameById('cheesy')!;
 const TITLE = 'Cheesy Pursuit';
@@ -73,6 +73,7 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
   const [pounce, setPounce] = useState<Pounce | null>(null);
   const [pounceAt, setPounceAt] = useState<{ x: number; y: number } | null>(null);
   const [scores, setScores] = useState(() => loadScores('cheesy'));
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const setGame = (state: State) => {
     current.current = state;
@@ -82,25 +83,11 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
   useEffect(() => saveSettings(settings), [settings]);
   useEffect(() => saveScores('cheesy', scores), [scores]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
+  const sound = (event: SoundEvent) => playEvent(settings, event);
   const sounds = (list: Sound[]) => list.forEach(sound);
+  const exit = useStartExit(TITLE, settings, onExit);
 
-  // The game's start sound, as the original plays it when its window opens.
-  useEffect(() => {
-    const s = loadSettings();
-    const name = s.sounds['Cheesy Pursuit Start'];
-    if (s.soundEnabled && name) playSound(name);
-  }, []);
-
-  const exit = () => {
-    sound('Cheesy Pursuit Exit');
-    onExit();
-  };
-
-  useFixedStep(TICK_MS, game.running && open === null && pounce === null, () => {
+  useFixedStep(TICK_MS, game.running && open === null && pounce === null && !menuOpen, () => {
     const { state, caught } = step(current.current, random);
     setGame(state);
     if (caught === null) return;
@@ -195,6 +182,7 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
       title={game.active ? `${TITLE} - Level ${game.level}` : TITLE}
       icon={INFO.smallIcon}
       onClose={exit}
+      onMenuChange={setMenuOpen}
       className="game arcade cheesy"
       menus={[
         {
@@ -241,32 +229,23 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'confirm-new' && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            {
-              label: '~Yes',
-              primary: true,
-              onClick: () => {
-                restart();
-                setOpen(null);
-              },
-            },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
+          text={CONFIRM_NEW}
+          onYes={() => {
+            restart();
+            setOpen(null);
+          }}
+          onNo={() => setOpen(null)}
+        />
       )}
 
       {open === 'scores' && (
-        <HighScoreDialog
+        <HallOfFame
           title={hallOfFame(settings.size)}
           table={table}
           onClose={() => setOpen(null)}
-          onClear={() =>
-            setScores({ ...scores, tables: { ...scores.tables, [tableKey(settings.size)]: emptyTable() } })
-          }
+          onClear={() => setScores(cleared(scores, tableKey(settings.size)))}
         />
       )}
 
@@ -294,20 +273,14 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
       )}
 
       {open !== null && typeof open === 'object' && open.kind === 'lose' && (
-        <LoseDialog title={TITLE} lines={['The cats got', 'all your mice!']} onOk={afterDefeat} />
+        <EndDialog title={TITLE} outcome="lose" lines={['The cats got', 'all your mice!']} onOk={afterDefeat} />
       )}
 
       {open !== null && typeof open === 'object' && open.kind === 'name' && (
-        <NameDialog
-          title="Enter your high score"
+        <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            const key = tableKey(settings.size);
-            const entry = { name, score: current.current.score };
-            setScores({
-              player: name,
-              tables: { ...scores.tables, [key]: insert(tableOf(scores, key), open.place, entry) },
-            });
+            setScores(record(scores, tableKey(settings.size), open.place, name, current.current.score));
             setGame(loseMouse(current.current));
             setOpen(null);
           }}
@@ -315,43 +288,26 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Eat every cheddar slice to complete a level. A gouda raises the value of the slices; a CheeseBomb, set off
-              with the bomb key, turns every cat back. A new mouse comes every 20,000 points.
-            </p>
-            <p>
-              Keyboard: the arrow keys move the mouse, Space sets off a CheeseBomb (Options › Player Keys changes them),
-              F2 starts a new game. On a touch screen, swipe on the play field or use the buttons below it.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls={
+            <>
+              <p>
+                Eat every cheddar slice to complete a level. A gouda raises the value of the slices; a CheeseBomb, set
+                off with the bomb key, turns every cat back. A new mouse comes every 20,000 points.
+              </p>
+              <p>
+                Keyboard: the arrow keys move the mouse, Space sets off a CheeseBomb (Options › Player Keys changes
+                them), F2 starts a new game. On a touch screen, swipe on the play field or use the buttons below it.
+              </p>
+            </>
+          }
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }

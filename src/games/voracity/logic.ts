@@ -87,31 +87,3 @@ export const KEYS: Record<string, readonly [number, number]> = {
   ArrowLeft: [-1, 0],
   ArrowRight: [1, 0],
 };
-
-// High scores (`FUN_00406a40` and following): ten names and scores per board size.
-
-export interface Entry {
-  name: string;
-  score: number;
-}
-
-export const TABLE_SIZE = 10;
-
-/**
- * Where a score enters a table (`FUN_00406e90`): the first place that is empty or holds a lower
- * score; -1 when it does not enter.
- */
-export function place(table: readonly Entry[], score: number): number {
-  for (let i = 0; i < TABLE_SIZE; i++) {
-    const e = table[i];
-    if (!e || e.score < score) return i;
-  }
-  return -1;
-}
-
-/** The table with `entry` at its place, the lower entries moved down (`FUN_00406cb0`). */
-export function enter(table: readonly Entry[], entry: Entry): Entry[] {
-  const i = place(table, entry.score);
-  if (i < 0) return [...table];
-  return [...table.slice(0, i), entry, ...table.slice(i)].slice(0, TABLE_SIZE);
-}

@@ -1,30 +1,29 @@
 import { useEffect, useState } from 'react';
-import codezone from '../../assets/shared/codezone.png';
-import { gameById } from '../../shell/catalog.ts';
-import { EndDialog } from '../../shell/cards/EndDialog.tsx';
-import { HallOfFame } from '../../shell/cards/HighScores.tsx';
+import { CONFIRM_NEW, CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
 import { BacksTab, FacesTab } from '../../shell/cards/OptionsTabs.tsx';
-import { insertScore, placeOf } from '../../shell/cards/scores.ts';
+import { gameById } from '../../shell/catalog.ts';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
+import { EndDialog } from '../../shell/EndDialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { beep, playSound } from '../../shell/sound.ts';
+import { HallOfFame } from '../../shell/HallOfFame.tsx';
+import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
+import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Label, Window } from '../../shell/Window.tsx';
 import { deal, isBroke, redeal, setBet, signIn, toggle, type State } from './logic.ts';
 import { Machine } from './Machine.tsx';
 import { loadSettings, saveSettings, TITLE, type Settings, type SoundEvent } from './settings.ts';
 import './style.css';
 
-const INFO = gameById('pokermat')!;
+const ID = 'pokermat';
+const INFO = gameById(ID)!;
 
 type Open = 'sign-in' | 'new' | 'options' | 'broke' | 'high-scores' | 'rules' | 'about' | null;
 
-/** FUN_00401270: a final balance into a high score table, under the signed-in name. */
-function record(settings: Settings, table: number, balance: number): Settings {
-  const scores = [...settings.scores];
-  const at = placeOf(scores[table] ?? [], balance);
-  if (at === null) return settings;
-  scores[table] = insertScore(scores[table] ?? [], at, { name: settings.playerName, score: balance });
-  return { ...settings, scores };
+/** FUN_00401270: a final balance into the high score table of game `type`, under the signed-in name. */
+function recordBalance(scores: HighScores, name: string, type: number, balance: number): HighScores {
+  const at = placeOf(tableOf(scores, type), balance);
+  return at < 0 ? scores : record(scores, type, at, name, balance);
 }
 
 export default function PokerMachine({ onExit }: { onExit: () => void }) {
@@ -33,23 +32,18 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
   // FUN_0040cc60: the machine starts by asking for the player's name.
   const [open, setOpen] = useState<Open>('sign-in');
 
+  // The three high score tables (final balances), by game type (kept with the settings before).
+  const [scores, setScores] = useState(() => loadScores(ID, ID));
   useEffect(() => saveSettings(settings), [settings]);
+  useEffect(() => saveScores(ID, scores), [scores]);
 
-  const sound = (event: SoundEvent) => {
-    const name = settings.sounds[event];
-    if (settings.soundEnabled && name) playSound(name);
-  };
-
-  useEffect(() => {
-    sound(`${TITLE} Start`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const sound = (event: SoundEvent) => playEvent(settings, event);
 
   // Leaving records the balance, even an empty one, as the original's destructor does.
+  const close = useStartExit(TITLE, settings, onExit);
   const exit = () => {
-    saveSettings(record(settings, settings.type, game.balance));
-    sound(`${TITLE} Exit`);
-    onExit();
+    saveScores(ID, recordBalance(scores, settings.playerName, settings.type, game.balance));
+    close();
   };
 
   /** The Deal button (FUN_0040c250): deal, or redeal and pay. */
@@ -86,7 +80,7 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
 
   /** Game › New (FUN_0040cf60, item 11): the balance recorded, then a new sign-in. */
   const newGame = () => {
-    if (game.balance !== 0) setSettings(record(settings, settings.type, game.balance));
+    if (game.balance !== 0) setScores(recordBalance(scores, settings.playerName, settings.type, game.balance));
     setOpen('sign-in');
   };
 
@@ -141,17 +135,7 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
         />
       )}
 
-      {open === 'new' && (
-        <Dialog
-          title={TITLE}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: newGame },
-            { label: '~No', cancel: true, onClick: () => setOpen(null) },
-          ]}
-        >
-          <p className="message warning">Are you sure you want to abandon the game in progress?</p>
-        </Dialog>
-      )}
+      {open === 'new' && <ConfirmBox title={TITLE} text={CONFIRM_NEW} onYes={newGame} onNo={() => setOpen(null)} />}
 
       {open === 'options' && (
         <OptionsDialog
@@ -160,7 +144,8 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
           onCancel={() => setOpen(null)}
           onOk={(next) => {
             // The original switches game first, then records the balance: in the new game's table.
-            setSettings(game.balance !== 0 ? record(next, next.type, game.balance) : next);
+            setSettings(next);
+            if (game.balance !== 0) setScores(recordBalance(scores, settings.playerName, next.type, game.balance));
             setGame({ ...signIn(next.type, game.bet), fresh: game.fresh });
             setOpen(null);
           }}
@@ -168,56 +153,28 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
       )}
 
       {open === 'broke' && (
-        <EndDialog title={TITLE} outcome="lose" lines={['You are broke!', '']} onClose={() => setOpen(null)} />
+        <EndDialog title={TITLE} outcome="lose" lines={['You are broke!', '']} onOk={() => setOpen(null)} />
       )}
 
       {open === 'high-scores' && (
         <HallOfFame
-          title={TITLE}
-          table={settings.scores[settings.type] ?? []}
-          onClear={() => {
-            const scores = [...settings.scores];
-            scores[settings.type] = [];
-            setSettings({ ...settings, scores });
-          }}
+          title="Hall of Fame"
+          table={tableOf(scores, settings.type)}
+          onClear={() => setScores(cleared(scores, settings.type))}
           onClose={() => setOpen(null)}
         />
       )}
 
       {open === 'rules' && (
-        <Dialog
-          title={`How to Play ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="rules">
-            <p>{INFO.blurb}</p>
-            {INFO.rules.map((r) => (
-              <p key={r}>{r}</p>
-            ))}
-            <p>
-              Your balance is recorded in the high score table of the game when you leave, start a new game or change
-              games. Keyboard: Enter presses Deal, F2 starts a new game.
-            </p>
-          </div>
-        </Dialog>
+        <RulesDialog
+          title={TITLE}
+          info={INFO}
+          onClose={() => setOpen(null)}
+          controls="Your balance is recorded in the high score table of the game when you leave, start a new game or change games. Keyboard: Enter presses Deal, F2 starts a new game."
+        />
       )}
 
-      {open === 'about' && (
-        <Dialog
-          title={`About ${TITLE}`}
-          buttons={[{ label: 'OK', primary: true, cancel: true, onClick: () => setOpen(null) }]}
-        >
-          <div className="about">
-            <img src={codezone} alt="The Code Zone: Sweet Software for a Saturnine World" width={321} height={149} />
-            <p>{TITLE} copyright © 1995 by The Code Zone.</p>
-            <p>
-              From 24 Games for Windows 95, © 1995 Expert Software, Inc. "24 Games" is a trademark of Expert Software,
-              Inc.
-            </p>
-            <p>Reverse-engineered for the browser; this version is not affiliated with either.</p>
-          </div>
-        </Dialog>
-      )}
+      {open === 'about' && <AboutDialog title={TITLE} onClose={() => setOpen(null)} />}
     </Window>
   );
 }
@@ -310,17 +267,12 @@ function OptionsDialog(props: {
         />
       </Dialog>
       {confirm && (
-        <Dialog
+        <ConfirmBox
           title={TITLE}
-          buttons={[
-            { label: '~Yes', primary: true, onClick: () => props.onOk(draft) },
-            { label: '~No', cancel: true, onClick: () => setConfirm(false) },
-          ]}
-        >
-          <p className="message warning">
-            Changing the game options will restart the game in progress. Are you sure you want to do this?
-          </p>
-        </Dialog>
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
       )}
     </>
   );

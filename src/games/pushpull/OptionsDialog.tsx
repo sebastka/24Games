@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { CONFIRM_OPTIONS, ConfirmBox } from '../../shell/Boxes.tsx';
+import { AnimationTab, BoardTab, PiecesTab, SkillLevel } from '../../shell/czgame/OptionsTabs.tsx';
 import { Dialog, Notebook } from '../../shell/Dialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
-import { AnimationTab, BoardTab, ConfirmRestart, PiecesTab, SkillLevel } from '../wari/czgame.tsx';
 import type { Settings } from './settings.ts';
 
 /** Game › Options (dialog 256): Options, Board, Pieces, Extras and Animation tabs. */
@@ -16,7 +17,7 @@ export function OptionsDialog(props: {
 
   const options = (
     <div className="board-options">
-      <SkillLevel skill={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
+      <SkillLevel value={draft.skill} onChange={(skill) => setDraft({ ...draft, skill })} />
       <fieldset>
         <legend>Who Goes First</legend>
         <select
@@ -46,17 +47,11 @@ export function OptionsDialog(props: {
             { label: '~Options', content: options },
             {
               label: '~Board',
-              content: <BoardTab board={draft.board} onChange={(board) => setDraft({ ...draft, board })} />,
+              content: <BoardTab value={draft.board} onChange={(board) => setDraft({ ...draft, board })} />,
             },
             {
               label: '~Pieces',
-              content: (
-                <PiecesTab
-                  pieceSet={draft.pieceSet}
-                  twoPieces
-                  onChange={(pieceSet) => setDraft({ ...draft, pieceSet })}
-                />
-              ),
+              content: <PiecesTab value={draft.pieceSet} onChange={(pieceSet) => setDraft({ ...draft, pieceSet })} />,
             },
             {
               label: '~Extras',
@@ -64,12 +59,19 @@ export function OptionsDialog(props: {
             },
             {
               label: '~Animation',
-              content: <AnimationTab speed={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })} />,
+              content: <AnimationTab value={draft.speed} onChange={(speed) => setDraft({ ...draft, speed })} />,
             },
           ]}
         />
       </Dialog>
-      {confirm && <ConfirmRestart title="Push-Pull" onYes={() => props.onOk(draft)} onNo={() => setConfirm(false)} />}
+      {confirm && (
+        <ConfirmBox
+          title="Push-Pull"
+          text={CONFIRM_OPTIONS}
+          onYes={() => props.onOk(draft)}
+          onNo={() => setConfirm(false)}
+        />
+      )}
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import pieces from '../../assets/maze/pieces.png';
 import { useFitScale, useImage } from '../../shell/canvas.ts';
-import { coarsePointer } from '../cheesy/common/loop.ts';
+import { coarsePointer } from '../../shell/loop.ts';
 import { at, Bit, type Direction, type State } from './logic.ts';
 
 /** The window's client area (its resource: 600×400); the original's window can be resized. */

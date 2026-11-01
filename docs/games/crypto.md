@@ -27,7 +27,7 @@ A phrase written in a secret alphabet: guess which letter each coded letter stan
   negative, the seek fails, and the file is read from its start: the first phrase ("A baby is
   God's opinion that the world should go on. -- Carl Sandburg" on Easy) comes up in about half
   the games — 3 of 6 launches under Wine. The other offsets are below 32768 or near
-  2³¹ modulo the size. Kept as is.
+  2³¹ modulo the size. **Fixed** in the web version (see the deviations).
 - **Difficult and Expert**: the spaces are removed, and a space is inserted after every 26
   characters (lines of 26 boxes).
 - **Encoding** (`FUN_00402cc0`): letters through the key, case kept; anything else as is.
@@ -75,7 +75,11 @@ A phrase written in a secret alphabet: guess which letter each coded letter stan
 
 ## Deviations from the original
 
+- **Fixed: the phrase pick.** Every phrase of the file is equally likely. The original shows its
+  first phrase in about half the games (a signed overflow, above) and favours the phrases that
+  follow long ones.
 - On touch screens, a row of letter keys under the puzzle (and a "Clear" key for the space), and
   a tap selects the nearest box within 12 pixels (the boxes are small on a phone).
-- The Extras tab is the shared one without its background list (`SoundsTab.tsx`).
+- The Extras tab is the shared one without its background list (`ExtrasTab` with
+  `background={false}`).
 - Help › How to Play shows the launcher's rules text (no WinHelp); Balloon Help is left out.

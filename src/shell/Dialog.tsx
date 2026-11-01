@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import spiral from '../assets/shared/spiral.png';
 import spiralEnd from '../assets/shared/spiral-end.png';
+import spiral from '../assets/shared/spiral.png';
 import { Label } from './Window.tsx';
 
 export interface DialogButton {
@@ -15,8 +15,38 @@ export interface DialogButton {
 /** Open dialogs, innermost last: only that one handles the keyboard. */
 const stack: object[] = [];
 
+/** The icons of StarView's message boxes (InfoBox, WarningBox, ErrorBox, QueryBox). */
+export type MessageIcon = 'info' | 'warning' | 'error' | 'question';
+
+/** A row of dialog buttons (the primary one, Enter's, gets the focus); `className` places it. */
+export function DialogButtons({ buttons, className }: { buttons: DialogButton[]; className?: string }) {
+  return (
+    <div className={className ?? 'dialog-buttons'}>
+      {buttons.map((b) => (
+        <button key={b.label} type="button" className={b.primary ? 'primary' : undefined} onClick={b.onClick}>
+          <Label text={b.label} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** A modal Windows 95 dialog over the game window. */
-export function Dialog(props: { title: string; buttons: DialogButton[]; className?: string; children: ReactNode }) {
+export function Dialog(props: {
+  title: string;
+  buttons: DialogButton[];
+  className?: string;
+  /** A message box: the children are its text, after this icon. */
+  icon?: MessageIcon;
+  /** No title bar (CZGAME32.DLL's end-of-game dialogs); `title` still names the dialog. */
+  untitled?: boolean;
+  /**
+   * No button row under the body: the children place the buttons themselves (with
+   * `DialogButtons`). Enter, Escape and the buttons' roles work as with a footer.
+   */
+  noFooter?: boolean;
+  children: ReactNode;
+}) {
   const box = useRef<HTMLDivElement>(null);
   const [id] = useState(() => ({}));
   const { buttons } = props;
@@ -67,22 +97,20 @@ export function Dialog(props: { title: string; buttons: DialogButton[]; classNam
         aria-label={props.title}
         ref={box}
       >
-        <header className="titlebar">
-          <h1>{props.title}</h1>
-          {cancel && (
-            <button type="button" className="close" aria-label="Close" onClick={cancel.onClick}>
-              ×
-            </button>
-          )}
-        </header>
-        <div className="dialog-body">{props.children}</div>
-        <footer className="dialog-buttons">
-          {buttons.map((b) => (
-            <button key={b.label} type="button" className={b.primary ? 'primary' : undefined} onClick={b.onClick}>
-              <Label text={b.label} />
-            </button>
-          ))}
-        </footer>
+        {!props.untitled && (
+          <header className="titlebar">
+            <h1>{props.title}</h1>
+            {cancel && (
+              <button type="button" className="close" aria-label="Close" onClick={cancel.onClick}>
+                ×
+              </button>
+            )}
+          </header>
+        )}
+        <div className="dialog-body">
+          {props.icon ? <p className={`message ${props.icon}`}>{props.children}</p> : props.children}
+        </div>
+        {!props.noFooter && <DialogButtons buttons={buttons} />}
       </div>
     </div>
   );
@@ -120,8 +148,10 @@ export function ListBox(props: {
   onActivate?: (i: number) => void;
   label: string;
   rows?: number;
+  /** Greyed out: no selection by mouse or keyboard. */
+  disabled?: boolean;
 }) {
-  const { items, selected, onSelect, onActivate } = props;
+  const { items, selected, onSelect, onActivate, disabled } = props;
   const list = useRef<HTMLUListElement>(null);
   useEffect(() => {
     list.current?.children[selected]?.scrollIntoView({ block: 'nearest' });
@@ -131,10 +161,12 @@ export function ListBox(props: {
       className="listbox"
       role="listbox"
       aria-label={props.label}
-      tabIndex={0}
+      aria-disabled={disabled || undefined}
+      tabIndex={disabled ? -1 : 0}
       ref={list}
       style={{ height: `calc(${(props.rows ?? 8) * 1.25}em + 4px)` }}
       onKeyDown={(e) => {
+        if (disabled) return;
         if (e.key === 'ArrowDown') onSelect(Math.min(items.length - 1, selected + 1));
         else if (e.key === 'ArrowUp') onSelect(Math.max(0, selected - 1));
         else if (e.key === 'Enter' && onActivate) onActivate(selected);
@@ -149,8 +181,8 @@ export function ListBox(props: {
           key={item}
           role="option"
           aria-selected={i === selected}
-          onClick={() => onSelect(i)}
-          onDoubleClick={() => onActivate?.(i)}
+          onClick={() => !disabled && onSelect(i)}
+          onDoubleClick={() => !disabled && onActivate?.(i)}
         >
           {item}
         </li>
