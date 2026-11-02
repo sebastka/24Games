@@ -4,7 +4,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { isKey } from '../../shell/keys.ts';
 import { useFixedStep } from '../../shell/loop.ts';
 import { playEvent, useStartExit } from '../../shell/sound.ts';
@@ -72,7 +73,7 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
   const [open, setOpen] = useState<Open>(null);
   const [pounce, setPounce] = useState<Pounce | null>(null);
   const [pounceAt, setPounceAt] = useState<{ x: number; y: number } | null>(null);
-  const [scores, setScores] = useState(() => loadScores('cheesy'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('cheesy');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const setGame = (state: State) => {
@@ -81,7 +82,6 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
   };
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('cheesy', scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
   const sounds = (list: Sound[]) => list.forEach(sound);
@@ -245,7 +245,7 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
           title={hallOfFame(settings.size)}
           table={table}
           onClose={() => setOpen(null)}
-          onClear={() => setScores(cleared(scores, tableKey(settings.size)))}
+          onClear={clearScores && (() => clearScores(tableKey(settings.size)))}
         />
       )}
 
@@ -280,7 +280,7 @@ export default function CheesyPursuit({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, tableKey(settings.size), open.place, name, current.current.score));
+            recordScore(tableKey(settings.size), open.place, name, current.current.score);
             setGame(loseMouse(current.current));
             setOpen(null);
           }}

@@ -105,6 +105,7 @@ bonus drops 40 points every 2 s, as the formula says.
 - After the last green pellet, the original runs the level dialog and the next level inside
   the tick, then goes on with that tick (the new enemies make one move); here the tick ends.
 - Respawning gives up looking for a free lane point after 10,000 tries (the original would loop).
-- Settings and high scores go to localStorage; Help has How to Play and About only.
+- Settings go to localStorage; high scores are shared on the instance (or kept in the browser
+  without a database: see DECISIONS.md, D11); Help has How to Play and About only.
 - Swipes turn, a tap fires (touch only), and an on-screen pad with Fire and New.
 - The level dialog's colours are guessed (only "Ouch!" was seen under Wine).

@@ -8,7 +8,8 @@ import { useImages } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { useFrameLoop } from '../../shell/loop.ts';
 import { randomRand } from '../../shell/random.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
@@ -39,7 +40,7 @@ export default function Sechseck({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const table = settings.boardSize;
   // A Hall of Fame per board size.
-  const [scores, setScores] = useState(() => loadScores(ID));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores(ID);
   // The original starts a game as its window opens.
   const [view, setView] = useState<State>(() => begin(settings));
   const [open, setOpen] = useState<Open>(null);
@@ -59,7 +60,6 @@ export default function Sechseck({ onExit }: { onExit: () => void }) {
   };
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores(ID, scores), [scores]);
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
@@ -208,7 +208,7 @@ export default function Sechseck({ onExit }: { onExit: () => void }) {
           title={`Hall of Fame - ${BOARD_NAMES[table]}`}
           table={tableOf(scores, table)}
           onClose={() => setOpen(null)}
-          onClear={() => setScores(cleared(scores, table))}
+          onClear={clearScores && (() => clearScores(table))}
         />
       )}
 
@@ -228,7 +228,7 @@ export default function Sechseck({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, table, open.rank, name, open.score));
+            recordScore(table, open.rank, name, open.score);
             setOpen(null);
           }}
         />

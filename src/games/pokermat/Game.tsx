@@ -7,7 +7,8 @@ import { EndDialog } from '../../shell/EndDialog.tsx';
 import { ExtrasTab } from '../../shell/ExtrasTab.tsx';
 import { HallOfFame } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Label, Window } from '../../shell/Window.tsx';
 import { deal, isBroke, redeal, setBet, signIn, toggle, type State } from './logic.ts';
@@ -20,12 +21,6 @@ const INFO = gameById(ID)!;
 
 type Open = 'sign-in' | 'new' | 'options' | 'broke' | 'high-scores' | 'rules' | 'about' | null;
 
-/** FUN_00401270: a final balance into the high score table of game `type`, under the signed-in name. */
-function recordBalance(scores: HighScores, name: string, type: number, balance: number): HighScores {
-  const at = placeOf(tableOf(scores, type), balance);
-  return at < 0 ? scores : record(scores, type, at, name, balance);
-}
-
 export default function PokerMachine({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [game, setGame] = useState<State>(() => signIn(settings.type));
@@ -33,16 +28,21 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
   const [open, setOpen] = useState<Open>('sign-in');
 
   // The three high score tables (final balances), by game type (kept with the settings before).
-  const [scores, setScores] = useState(() => loadScores(ID, ID));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores(ID, ID);
+
+  /** FUN_00401270: a final balance into the high score table of game `type`, under the signed-in name. */
+  const recordBalance = (name: string, type: number, balance: number) => {
+    const at = placeOf(tableOf(scores, type), balance);
+    if (at >= 0) recordScore(type, at, name, balance);
+  };
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores(ID, scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
 
   // Leaving records the balance, even an empty one, as the original's destructor does.
   const close = useStartExit(TITLE, settings, onExit);
   const exit = () => {
-    saveScores(ID, recordBalance(scores, settings.playerName, settings.type, game.balance));
+    recordBalance(settings.playerName, settings.type, game.balance);
     close();
   };
 
@@ -80,7 +80,7 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
 
   /** Game › New (FUN_0040cf60, item 11): the balance recorded, then a new sign-in. */
   const newGame = () => {
-    if (game.balance !== 0) setScores(recordBalance(scores, settings.playerName, settings.type, game.balance));
+    if (game.balance !== 0) recordBalance(settings.playerName, settings.type, game.balance);
     setOpen('sign-in');
   };
 
@@ -145,7 +145,7 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
           onOk={(next) => {
             // The original switches game first, then records the balance: in the new game's table.
             setSettings(next);
-            if (game.balance !== 0) setScores(recordBalance(scores, settings.playerName, next.type, game.balance));
+            if (game.balance !== 0) recordBalance(settings.playerName, next.type, game.balance);
             setGame({ ...signIn(next.type, game.bet), fresh: game.fresh });
             setOpen(null);
           }}
@@ -160,7 +160,7 @@ export default function PokerMachine({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title="Hall of Fame"
           table={tableOf(scores, settings.type)}
-          onClear={() => setScores(cleared(scores, settings.type))}
+          onClear={clearScores && (() => clearScores(settings.type))}
           onClose={() => setOpen(null)}
         />
       )}

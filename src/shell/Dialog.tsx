@@ -10,6 +10,8 @@ export interface DialogButton {
   primary?: boolean;
   /** Triggered by Escape and the close box. */
   cancel?: boolean;
+  /** Greyed out. */
+  disabled?: boolean;
 }
 
 /** Open dialogs, innermost last: only that one handles the keyboard. */
@@ -23,7 +25,13 @@ export function DialogButtons({ buttons, className }: { buttons: DialogButton[];
   return (
     <div className={className ?? 'dialog-buttons'}>
       {buttons.map((b) => (
-        <button key={b.label} type="button" className={b.primary ? 'primary' : undefined} onClick={b.onClick}>
+        <button
+          key={b.label}
+          type="button"
+          className={b.primary ? 'primary' : undefined}
+          disabled={b.disabled}
+          onClick={b.onClick}
+        >
           <Label text={b.label} />
         </button>
       ))}

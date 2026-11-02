@@ -3,7 +3,8 @@ import { CONFIRM_NEW, ConfirmBox } from '../../shell/Boxes.tsx';
 import { gameById } from '../../shell/catalog.ts';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf as scoreTable } from '../../shell/highscores.ts';
+import { placeOf, tableOf as scoreTable } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
@@ -25,10 +26,9 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
   const table = tableOf(settings);
 
   // The four high score tables, by variant (kept with the settings before).
-  const [scores, setScores] = useState(() => loadScores(ID, ID));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores(ID, ID);
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores(ID, scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
 
@@ -152,7 +152,7 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, table, open.name, name, final.total));
+            recordScore(table, open.name, name, final.total);
             setOpen(null);
           }}
         />
@@ -162,7 +162,7 @@ export default function PokerPatience({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title="Hall of Fame"
           table={scoreTable(scores, table)}
-          onClear={() => setScores(cleared(scores, table))}
+          onClear={clearScores && (() => clearScores(table))}
           onClose={() => setOpen(null)}
         />
       )}

@@ -18,12 +18,14 @@ worth reviewing.
   Boxedwine): every game at once and exact, but megabytes of emulator and OS, slow on phones,
   no touch, and a Windows licence.
 
-### D2. Stack: React 19, Vite 8, TypeScript, Canvas 2D; nothing else at run time
+### D2. Stack: React 19, Vite 8, TypeScript, Canvas 2D; Hono and MariaDB for the high scores
 
-- Same toolchain and conventions as the other TypeScript projects (ferrocine-ui): `tsc` 7 for
-  typechecking, ESLint, Prettier, `node --test` with type stripping, no test framework.
+- Same toolchain and conventions as the other TypeScript projects (ferrocine-ui for the UI,
+  tlsrpt and mailwatch for the server): `tsc` 7 for typechecking, ESLint, Prettier,
+  `node --test` with type stripping, no test framework.
 - React for the chrome (windows, menus, dialogs, the launcher), a canvas for each play field.
-- A static site: nginx (Docker Hardened Image, non-root, read-only) serves it; no server code.
+- A small Node server (Hono, `src/server/`) serves the built site and the high score API, from
+  a Docker Hardened Node image (non-root, read-only); its only state is in MariaDB (D11).
 
 ### D3. The original files and the extracted assets are committed ⚠️
 
@@ -51,8 +53,9 @@ worth reviewing.
 
 ### D5. Hash routes
 
-`#/bulldoze` rather than `/bulldoze`: the site is plain static files, any static host works, and
-nginx needs no rewrite rules beyond the SPA fallback.
+`#/bulldoze` rather than `/bulldoze`: the site is plain static files, which any static host can
+serve (with high scores kept in each browser), and the server needs no routes beyond the SPA
+fallback.
 
 ### D9. The CZGAME framework once, in src/shell
 
@@ -116,8 +119,34 @@ the games' art was made for it.
 - **Touch**: drag and drop by touch, swipes and an on-screen pad (on coarse pointers) for the
   keyboard-driven games, an on-screen keyboard for Cryptograms; the play fields scale by whole
   pixels when there is room, to the width on phones.
-- **Settings and high scores** go to localStorage instead of the registry; the per-event sound
-  choice lists the CD's sounds instead of opening a file dialog.
+- **Settings** go to localStorage instead of the registry; the per-event sound choice lists the
+  CD's sounds instead of opening a file dialog. **High scores** are shared on the instance (D11).
 - **Help**: "How to Play" shows the launcher's rules text; the WinHelp files (`.hlp`) are not
   converted yet, and Balloon Help is left out.
 - The windows keep the original's default size (several originals could be resized).
+
+## High scores
+
+### D11. One shared Hall of Fame per game and instance, in MariaDB ⚠️
+
+- **Choice.** Everyone playing on an instance shares its high score tables, like an arcade
+  machine. The server keeps them in MariaDB (one row per entry, at most ten per table) and ranks
+  every score itself, with the original's rules (`src/shared/highscores.ts`, used by the browser
+  as well). The dialogs keep their original look.
+- **Why MariaDB.** The other self-hosted projects already run on it (tlsrpt, mailwatch): same
+  driver, migrations and backups. Submissions to a table are serialised by a row lock, so
+  simultaneous high scores cannot lose one another.
+- **Without a database** (no `DB_HOST`, or a plain static host), each browser keeps its own
+  tables in localStorage, as before; the browser also caches the shared tables there, so they
+  show at once and offline.
+- **Clear Scores** is greyed out while the tables are shared: no player may empty everyone's
+  table. An administrator clears one in SQL (`DELETE FROM scores WHERE game = 'cheesy' AND
+table_key = '7'`).
+- **Cost: scores are not proven.** The games run in the browser, so anyone can submit any score
+  to the API. The server checks names and scores, refuses cross-site submissions and limits the
+  submissions per table and minute (`SCORES_PER_MINUTE`), which stops floods and casual abuse,
+  not a determined player. Fine for a private or home instance; a public one would need the
+  server to replay the games.
+- _Alternatives._ SQLite or a JSON file per game: no extra service, but a different stack from
+  the other projects; player accounts (scores per person across devices): an identity provider
+  for a game collection, not worth it.

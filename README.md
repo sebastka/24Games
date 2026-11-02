@@ -88,13 +88,15 @@ scoring were rewritten from it, then compared with the originals running under W
 
 ## Development
 
-Node 26 (`.nvmrc`).
+Node 26 (`.nvmrc`), and Docker for MariaDB.
 
 ```sh
 npm ci
-npm run dev                 # http://localhost:5173
-npm run check               # typecheck, lint, format check, tests
-npm run build               # static site in dist/
+cp .env.example .env        # the database of compose.yaml; leave DB_HOST out for browser-only scores
+docker compose up -d        # MariaDB on 127.0.0.1:3306
+npm run dev                 # the server (high score API) and Vite: http://localhost:5173
+npm run check               # typecheck, lint, format check, tests (MariaDB ones with TEST_DB_HOST)
+npm run build               # the site in dist/, served by `npm start`
 npm run assets              # re-extract src/assets from original/
 npm run assets -- bulldoze  # one game's assets only
 ```
@@ -106,24 +108,60 @@ npm run assets -- bulldoze  # one game's assets only
 | [src/shell/](src/shell)       | Windows 95 chrome, and what the games share (dialogs, scores, cards…) |
 | [src/launcher/](src/launcher) | The game browser of `games.exe`                                       |
 | [src/games/](src/games)       | One directory per game, named after its executable                    |
+| [src/server/](src/server)     | The server: the site, and the shared high scores in MariaDB           |
+| [src/shared/](src/shared)     | The high score rules, used by the browser and the server              |
 | [tools/re/](tools/re)         | Reverse-engineering helpers: Ghidra script, Wine screenshots          |
 | [docs/](docs)                 | Reverse engineering, porting conventions, one page per game           |
 
 ## Deployment
 
-The image serves the static site with nginx, as a non-root user, on port 8080:
+The image serves the site and the high score API with Node, as a non-root user, on port 8080.
+With a MariaDB database, everyone playing on the instance shares one Hall of Fame per game; the
+server creates its tables at start. Without one (no `DB_HOST`), each browser keeps its own high
+scores. See [DECISIONS.md](DECISIONS.md) (D11) for what that trusts.
 
 ```yaml
 services:
   24games:
     image: ghcr.io/sebastka/24games:edge
     ports: ['8080:8080']
+    environment:
+      DB_HOST: mariadb
+      DB_PASSWORD: change-me
+      PUBLIC_URL: https://games.example.com
     read_only: true
-    tmpfs: [/tmp]
     cap_drop: [ALL]
     security_opt: ['no-new-privileges:true']
+    depends_on: [mariadb]
+  mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: 24games
+      MARIADB_USER: 24games
+      MARIADB_PASSWORD: change-me
+      MARIADB_RANDOM_ROOT_PASSWORD: '1'
+    volumes: ['mariadb:/var/lib/mysql']
+volumes:
+  mariadb:
 ```
 
-`/healthz` answers `ok`. Pushes to `master` publish `edge`; running the Release workflow publishes
-a dated release (`YYYY-MM-DD`) and `latest`, signed with cosign. Locally: `docker compose up -d
---build` (http://localhost:8080).
+| Variable            | Default   | Purpose                                               |
+| ------------------- | --------- | ----------------------------------------------------- |
+| `DB_HOST`           | (none)    | MariaDB host; unset: high scores kept in each browser |
+| `DB_PORT`           | `3306`    |                                                       |
+| `DB_USER`           | `24games` |                                                       |
+| `DB_PASSWORD`       | (none)    | Required with `DB_HOST`                               |
+| `DB_NAME`           | `24games` |                                                       |
+| `DB_TLS`            | `false`   | TLS to MariaDB, with certificate verification         |
+| `DB_POOL_SIZE`      | `5`       |                                                       |
+| `PUBLIC_URL`        | (none)    | The site's origin, checked against score submissions  |
+| `SCORES_PER_MINUTE` | `30`      | Scores accepted per table and minute                  |
+| `PORT`              | `8080`    | In the image (`3000` with `npm start`)                |
+
+The "Clear Scores" button is greyed out while the tables are shared; clear a table in SQL, e.g.
+`DELETE FROM scores WHERE game = 'cheesy' AND table_key = '7';` (the table keys are the games'
+skill levels, board sizes or variants).
+
+`/api/health` answers `{"ok":true}`. Pushes to `master` publish `edge`; running the Release
+workflow publishes a dated release (`YYYY-MM-DD`) and `latest`, signed with cosign. Locally:
+`docker compose --profile app up -d --build` (http://localhost:8080, with MariaDB).

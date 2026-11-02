@@ -21,6 +21,7 @@ export default tseslint.config(
 
   {
     files: ['src/**/*.{ts,tsx,js}'],
+    ignores: ['src/server/**'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
     rules: {
@@ -30,7 +31,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['test/**/*.ts', 'scripts/**/*.ts', '*.config.{ts,js}'],
+    files: ['src/server/**/*.ts', 'test/**/*.ts', 'scripts/**/*.ts', '*.config.{ts,js}'],
     languageOptions: { globals: globals.node },
   },
 

@@ -6,7 +6,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
@@ -50,13 +51,12 @@ type Open =
 export default function Pegopolis({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [game, setGame] = useState<State>(() => start(LAYOUTS[settings.layout]!));
-  const [scores, setScores] = useState<HighScores>(() => loadScores('pegoplis'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('pegoplis');
   const [open, setOpen] = useState<Open>(null);
   const layout = LAYOUTS[settings.layout]!;
   const title = `${TITLE} - ${layout.name}`;
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('pegoplis', scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
 
@@ -196,7 +196,7 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title={`Hall of Fame - ${layout.name}`}
           table={tableOf(scores, settings.layout)}
-          onClear={() => setScores(cleared(scores, settings.layout))}
+          onClear={clearScores && (() => clearScores(settings.layout))}
           onClose={() => setOpen(null)}
         />
       )}
@@ -205,7 +205,7 @@ export default function Pegopolis({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, settings.layout, open.place, name, open.highScore));
+            recordScore(settings.layout, open.place, name, open.highScore);
             setOpen(null);
           }}
         />

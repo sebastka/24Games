@@ -5,7 +5,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
@@ -31,11 +32,10 @@ type Open =
 export default function Quinto({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [game, setGame] = useState<State>(() => start(settings.width, settings.height));
-  const [scores, setScores] = useState<HighScores>(() => loadScores('quinto'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('quinto');
   const [open, setOpen] = useState<Open>(null);
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('quinto', scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
 
@@ -152,7 +152,7 @@ export default function Quinto({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title={`Hall of Fame (${settings.width}x${settings.height})`}
           table={tableOf(scores, table)}
-          onClear={() => setScores(cleared(scores, table))}
+          onClear={clearScores && (() => clearScores(table))}
           onClose={() => setOpen(null)}
         />
       )}
@@ -170,7 +170,7 @@ export default function Quinto({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, table, open.place, name, open.highScore));
+            recordScore(table, open.place, name, open.highScore);
             setOpen(null);
           }}
         />

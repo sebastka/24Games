@@ -14,14 +14,16 @@ import './hall-of-fame.css';
  * Show High Scores (dialog 3000, painted by FUN_0040dd80 in cheesy.exe, FUN_00408f30 in
  * match.exe): the flag (flag2.bmp, 351×302 at (4, 10)), then ten rows of white boxes (rank 18,
  * name 160 and score 60 pixels wide, 18 high, 4 apart), row i at (10 + 11i, 10 + 27i); OK and
- * Clear Scores over the flag's foot. Clear Scores asks first (message 3000). `title`: "Hall of
- * Fame", or the table's name when a game has several ("Hall of Fame - Easy").
+ * Clear Scores over the flag's foot. Clear Scores asks first (message 3000), and is greyed out
+ * without `onClear` (tables shared by everyone on the instance). `title`: "Hall of Fame", or the
+ * table's name when a game has several ("Hall of Fame - Easy").
  */
-export function HallOfFame(props: { title: string; table: Table; onClear: () => void; onClose: () => void }) {
+export function HallOfFame(props: { title: string; table: Table; onClear?: () => void; onClose: () => void }) {
   const [confirm, setConfirm] = useState(false);
+  const { onClear } = props;
   const buttons = [
     { label: 'OK', primary: true, cancel: true, onClick: props.onClose },
-    { label: 'Clear Scores', onClick: () => setConfirm(true) },
+    { label: 'Clear Scores', disabled: !onClear, onClick: () => setConfirm(true) },
   ];
   return (
     <>
@@ -50,7 +52,7 @@ export function HallOfFame(props: { title: string; table: Table; onClear: () => 
           text="Are you sure you want to clear the scores in the high score table?"
           onYes={() => {
             setConfirm(false);
-            props.onClear();
+            onClear?.();
           }}
           onNo={() => setConfirm(false)}
         />

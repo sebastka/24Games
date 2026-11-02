@@ -58,6 +58,7 @@ when the target cannot move. Best scores go to a Hall of Fame, one per board siz
 
 - "Move Piece" is played once per move (the original plays it for each square eaten, each
   cutting the previous one short).
-- The Hall of Fame is kept in the browser (localStorage); the dialogs are the shell's
+- The Hall of Fame is shared on the instance (or kept in the browser without a database: see
+  DECISIONS.md, D11); the dialogs are the shell's
   ([src/shell/HallOfFame.tsx](../../src/shell/HallOfFame.tsx)), shared by every game.
 - The Help menu has How to Play and About only, as Bulldozer's.
