@@ -6,7 +6,7 @@
   "type": "module",
   "description": "The games of Expert's 24 Games for Windows 95 (1995), reverse-engineered for the browser",
   "engines": {
-    "node": ">=26.11.0"
+    "node": ">=26.13.0"
   },
   "scripts": {
     "dev": "vite",
