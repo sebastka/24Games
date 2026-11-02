@@ -112,5 +112,6 @@ straight lines. Real time: the cats move on a 50 ms timer, the mouse one cell pe
   7 x 5 (a 9 x 7 setting comes back as 7 x 5).
 - Dialogs 257 and 258 are titled "Cheesy Pursuit" (the original's say "ModalDialog").
 - The cat's pounce lasts about 5 ms per step (the original's busy loop depends on the CPU).
-- Settings and high scores go to localStorage; Help has How to Play and About only.
+- Settings go to localStorage; high scores are shared on the instance (or kept in the browser
+  without a database: see DECISIONS.md, D11); Help has How to Play and About only.
 - Swipes on the play field and an on-screen pad (with Bomb and New) on touch screens.

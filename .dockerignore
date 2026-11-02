@@ -6,4 +6,3 @@
 !tsconfig.json
 !vite.config.ts
 !src/
-!deploy/nginx/

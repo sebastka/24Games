@@ -8,7 +8,8 @@ import { useImages } from '../../shell/canvas.ts';
 import { gameById } from '../../shell/catalog.ts';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { useFrameLoop } from '../../shell/loop.ts';
 import { randomRand } from '../../shell/random.ts';
 import { playEvent, useStartExit } from '../../shell/sound.ts';
@@ -38,13 +39,15 @@ type Open =
 
 export default function StackBlitz({ onExit }: { onExit: () => void }) {
   const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [scores, setScores] = useState(() => loadScores(ID));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores(ID);
   const [view, setView] = useState<State>(() => initial(randomRand));
   const [started, setStarted] = useState(false);
   const [open, setOpen] = useState<Open>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const game = useRef(view);
   const settingsRef = useRef(settings);
+  // The tables as the game loop's callbacks see them (they are created once).
+  const scoresRef = useRef(scores);
   const background = BACKGROUNDS[settings.background];
   const images = useImages(
     background?.texture ? [pieces, horizontal, diagonal, background.texture] : [pieces, horizontal, diagonal],
@@ -57,10 +60,12 @@ export default function StackBlitz({ onExit }: { onExit: () => void }) {
   };
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores(ID, scores), [scores]);
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
+  useEffect(() => {
+    scoresRef.current = scores;
+  }, [scores]);
 
   const sound = useCallback((event: SoundEvent) => playEvent(settingsRef.current, event), []);
   const exit = useStartExit('StackBlitz', settings, onExit);
@@ -72,7 +77,7 @@ export default function StackBlitz({ onExit }: { onExit: () => void }) {
       setView(state);
       for (const e of events) sound(e);
       if (events.includes('Game Over')) {
-        const rank = placeOf(tableOf(loadScores(ID), 0), state.score);
+        const rank = placeOf(tableOf(scoresRef.current, 0), state.score);
         setOpen(rank >= 0 ? { kind: 'high-score', score: state.score, rank } : { kind: 'game-over' });
       }
     },
@@ -201,7 +206,7 @@ export default function StackBlitz({ onExit }: { onExit: () => void }) {
           title="Hall of Fame"
           table={tableOf(scores, 0)}
           onClose={() => setOpen(null)}
-          onClear={() => setScores(cleared(scores, 0))}
+          onClear={clearScores && (() => clearScores(0))}
         />
       )}
 
@@ -209,7 +214,7 @@ export default function StackBlitz({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, 0, open.rank, name, open.score));
+            recordScore(0, open.rank, name, open.score);
             setOpen(null);
           }}
         />

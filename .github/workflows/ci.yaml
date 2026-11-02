@@ -19,6 +19,21 @@ jobs:
     name: Typecheck, lint, format, tests and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # MariaDB for the high score store's integration tests (test/server-store.test.ts).
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: ci-root
+      TEST_DB_NAME: games24_test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -69,15 +84,32 @@ jobs:
           tags: 24games:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Smoke test the image (read-only, no capability)
+      - name: Smoke test the image without a database (read-only, no capability)
         run: |
-          docker run -d --name web -p 8080:8080 --read-only --tmpfs /tmp --cap-drop ALL \
+          docker run -d --name web -p 8080:8080 --read-only --cap-drop ALL \
             --security-opt no-new-privileges 24games:ci
-          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done
+          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/api/health && break; sleep 1; done
           curl -fsS http://127.0.0.1:8080/ | grep -q '<div id="root">'
+          curl -fsS http://127.0.0.1:8080/some/route | grep -q '<div id="root">'
           curl -fsSI http://127.0.0.1:8080/ | grep -qi "content-security-policy: default-src 'self'"
           bundle=$(curl -fsS http://127.0.0.1:8080/ | grep -o '/assets/index-[^"]*\.js' | head -1)
           curl -fsS "http://127.0.0.1:8080$bundle" | grep -q 'Bulldozer'
+          # No database: the games keep their high scores themselves.
+          curl -fsS http://127.0.0.1:8080/api/scores/cheesy | grep -q '"shared":false'
+      - name: Smoke test the image with MariaDB (shared high scores)
+        run: |
+          docker network create games
+          docker run -d --name db --network games -e MARIADB_DATABASE=24games -e MARIADB_USER=24games \
+            -e MARIADB_PASSWORD=ci -e MARIADB_RANDOM_ROOT_PASSWORD=1 mariadb:11.4
+          for _ in $(seq 1 60); do docker exec db healthcheck.sh --connect --innodb_initialized && break; sleep 1; done
+          docker run -d --name web-db --network games -p 8081:8080 --read-only --cap-drop ALL \
+            --security-opt no-new-privileges -e DB_HOST=db -e DB_PASSWORD=ci 24games:ci
+          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:8081/api/health && break; sleep 1; done
+          curl -fsS -X POST -H 'content-type: application/json' -H 'sec-fetch-site: same-origin' \
+            -d '{"name":"CI","score":1234}' http://127.0.0.1:8081/api/scores/cheesy/1 | grep -q '"place":0'
+          curl -fsS http://127.0.0.1:8081/api/scores/cheesy | grep -q '"name":"CI","score":"1234"'
       - name: Container logs
         if: always()
-        run: docker logs web || true
+        run: |
+          docker logs web || true
+          docker logs web-db || true

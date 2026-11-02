@@ -4,7 +4,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { isKey } from '../../shell/keys.ts';
 import { useFixedStep } from '../../shell/loop.ts';
 import { playEvent, useStartExit } from '../../shell/sound.ts';
@@ -41,7 +42,7 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
   const [game, setGameState] = useState(() => newGame(random));
   const current = useRef(game);
   const [open, setOpen] = useState<Open>(null);
-  const [scores, setScores] = useState(() => loadScores('thinktnk'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('thinktnk');
   const [menuOpen, setMenuOpen] = useState(false);
 
   const setGame = (state: State) => {
@@ -50,7 +51,6 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
   };
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('thinktnk', scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
   const sounds = (list: Sound[]) => list.forEach(sound);
@@ -174,7 +174,7 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
           title="Hall of Fame"
           table={tableOf(scores, TABLE)}
           onClose={() => setOpen(null)}
-          onClear={() => setScores(cleared(scores, TABLE))}
+          onClear={clearScores && (() => clearScores(TABLE))}
         />
       )}
 
@@ -210,7 +210,7 @@ export default function ThinkTank({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, TABLE, open.place, name, current.current.score));
+            recordScore(TABLE, open.place, name, current.current.score);
             setOpen(null);
           }}
         />

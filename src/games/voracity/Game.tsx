@@ -11,7 +11,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { bevel } from '../../shell/czgame/draw.ts';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { canMove, cell, DIRECTIONS, isOver, KEYS, move, newGame, type State } from './logic.ts';
@@ -63,9 +64,8 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
   const sheet = useImage(SHEETS[settings.tiles]!);
 
   // The Hall of Fame of each board size (kept with the settings before).
-  const [scores, setScores] = useState(() => loadScores(ID, ID));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores(ID, ID);
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores(ID, scores), [scores]);
 
   const redraw = useCallback(() => {
     const ctx = canvas.current?.getContext('2d');
@@ -205,7 +205,7 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
           name={scores.player}
           onOk={(name) => {
             const place = placeOf(table, game.score);
-            if (place >= 0) setScores(record(scores, game.size, place, name, game.score));
+            if (place >= 0) recordScore(game.size, place, name, game.score);
             setOpen(null);
           }}
         />
@@ -215,7 +215,7 @@ export default function Voracity({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title={`Hall of Fame - ${sizeName(game.size)}`}
           table={table}
-          onClear={() => setScores(cleared(scores, game.size))}
+          onClear={clearScores && (() => clearScores(game.size))}
           onClose={() => setOpen(null)}
         />
       )}

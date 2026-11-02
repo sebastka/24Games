@@ -9,7 +9,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board } from './Board.tsx';
@@ -47,14 +48,13 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState(() => deal(settings.skill));
   const [clock, setClock] = useState<Clock>(() => newClock(performance.now()));
   const [now, setNow] = useState(() => performance.now());
-  const [scores, setScores] = useState<HighScores>(() => loadScores('match'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('match');
   const [open, setOpen] = useState<Open>(null);
   const [hidden, setHidden] = useState(() => document.hidden);
   // Whether the clock was paused by a dialog (or a hidden tab), to be resumed after it.
   const held = useRef(false);
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('match', scores), [scores]);
 
   const sound = (event: SoundEvent | null) => {
     if (event) playEvent(settings, event);
@@ -200,7 +200,7 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title={`Hall of Fame - ${level}`}
           table={tableOf(scores, settings.skill - 1)}
-          onClear={() => setScores(cleared(scores, settings.skill - 1))}
+          onClear={clearScores && (() => clearScores(settings.skill - 1))}
           onClose={() => setOpen(null)}
         />
       )}
@@ -218,7 +218,7 @@ export default function CardMatch({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, settings.skill - 1, open.place, name, open.highScore));
+            recordScore(settings.skill - 1, open.place, name, open.highScore);
             setOpen(null);
           }}
         />

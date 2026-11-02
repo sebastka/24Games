@@ -108,6 +108,7 @@ Help id 1851: face set 1 (Art Deco), back 5 (Innovation), background 18 (Psyched
 ## Deviations from the original
 
 - The 3D colours are Windows 95's (face `#c0c0c0`, shadow `#808080`), not the system's.
-- The high scores and the options are kept in localStorage; Help shows the launcher's rules
+- The options are kept in localStorage, the high scores shared on the instance (or kept in the
+  browser without a database: see DECISIONS.md, D11); Help shows the launcher's rules
   text (as in every game here), and the About box is the short one of the web version.
 - Touch: a card can be dragged with a finger, or a cell tapped.

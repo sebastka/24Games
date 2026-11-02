@@ -27,7 +27,7 @@ game never imports from another game's directory:
 | `Dialog.tsx`                                                 | `Dialog` (`icon`, `untitled`, `noFooter` with `DialogButtons`), `Notebook`, `ListBox`        |
 | `Boxes.tsx`                                                  | `ConfirmBox` (`CONFIRM_NEW`, `CONFIRM_OPTIONS`), `MessageBox`                                |
 | `EndDialog.tsx`                                              | "You Win!" / "You Lose!" / "It's A Tie!" (CZGAME32.DLL dialogs 1002-1004)                    |
-| `HallOfFame.tsx`, `highscores.ts`                            | The high score tables (dialogs 3000, 3001), stored as `<id>.scores`                          |
+| `HallOfFame.tsx`, `useHighScores.ts`                         | The high score dialogs (3000, 3001); the tables, shared by the server (MariaDB) or local     |
 | `HelpDialogs.tsx`                                            | Help › How to Play (the launcher's rules text) and About                                     |
 | `ExtrasTab.tsx`                                              | Options › Extras: background (`background={false}` to leave it out) and sounds               |
 | `sound.ts`, `soundEvents.ts`                                 | `playSound`, `beep`, `playEvent`; `soundEvents` and `useStartExit` ("<Title> Start/Exit")    |
@@ -58,6 +58,9 @@ where a bitmap has one, are still in the bitmap).
   Exit" (`soundEvents(title, events)`; `useStartExit` plays them).
 - Settings that the original keeps in the registry (skill level, piece set, background…) go to
   `storage.ts` under the game's id.
+- High scores: `useHighScores(id)` gives the tables (shared by the server, or kept in the
+  browser) and `record`/`clear` for the `HallOfFame` dialogs; the game is listed in
+  `SCORE_GAMES` (`src/shared/highscores.ts`), with whether a lower score is better.
 - Deviations (a bug not reproduced, touch controls, something kept across visits) are listed at
   the end of `docs/games/<id>.md`.
 

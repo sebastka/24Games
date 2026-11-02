@@ -1,21 +1,11 @@
-// The high score tables ("Hall of Fame") of CZGAME's games: the same code is linked into each
-// game (FUN_004080b0-FUN_00408ad0 in match.exe, FUN_004066c0 and following in stackblz.exe,
-// FUN_00401000-FUN_00401f09 in pokergrd.exe…). Ten names and scores per table, kept as strings
-// in the registry as "Name_<table>_<n>" and "Score_<table>_<n>", with the last name entered as
-// "PlayerName". A game has one table, or one per skill level, board size or variant. Pure: no
-// DOM (the dialogs are in HallOfFame.tsx).
+// The high scores of a game in the browser: its tables, and the last name entered. The originals
+// keep them in the registry ("Name_<table>_<n>", "Score_<table>_<n>", "PlayerName"); here they
+// are kept in localStorage, which also caches the tables the server shares (useHighScores.ts).
+// The ranking rules are in src/shared/highscores.ts; the dialogs in HallOfFame.tsx.
+import { insert, TABLE_SIZE, type Entry, type Table } from '../shared/highscores.ts';
 import { load, save } from './storage.ts';
 
-export const TABLE_SIZE = 10;
-
-export interface Entry {
-  name: string;
-  /** As shown: a number, or CardMatch's times ("1:13"). */
-  score: string;
-}
-
-/** The entries of a table, best first; the places after them are free. */
-export type Table = readonly Entry[];
+export { insert, placeOf, scoreValue, TABLE_SIZE, type Entry, type Table } from '../shared/highscores.ts';
 
 export interface HighScores {
   /** By table: "0" for the games with one, else the skill level, board size or variant. */
@@ -23,34 +13,6 @@ export interface HighScores {
   /** The last name entered, offered for the next high score (PlayerName). */
   player: string;
 }
-
-/**
- * A score's value (`FUN_00405240` in match.exe): its digits read as one number, whatever is
- * between them ("1:13" is 113, which orders times correctly), or -1 without digits.
- */
-export function scoreValue(score: string | number): number {
-  const digits = String(score).replace(/\D/g, '');
-  return digits ? Number(digits) : -1;
-}
-
-/**
- * Where `score` enters `table` (`FUN_00408320` in match.exe, `FUN_00406930` in stackblz.exe):
- * before the first entry it beats strictly (a tie goes below), or at the first free place; -1 if
- * it does not enter. A free place takes any score, 0 included. Lower is better for times.
- */
-export function placeOf(table: Table, score: string | number, lowerIsBetter = false): number {
-  const value = scoreValue(score);
-  if (value < 0) return -1;
-  for (let i = 0; i < TABLE_SIZE; i++) {
-    const other = table[i] ? scoreValue(table[i]!.score) : -1;
-    if (other < 0 || (lowerIsBetter ? value < other : value > other)) return i;
-  }
-  return -1;
-}
-
-/** `table` with `name` and `score` at `place`, the entries below moved down (the last one drops out). */
-export const insert = (table: Table, place: number, name: string, score: string | number): Table =>
-  [...table.slice(0, place), { name, score: String(score) }, ...table.slice(place)].slice(0, TABLE_SIZE);
 
 /** Table `key` of `scores` (empty if never filled). */
 export const tableOf = (scores: HighScores, key: string | number): Table => scores.tables[key] ?? [];

@@ -5,7 +5,8 @@ import { gameById } from '../../shell/catalog.ts';
 import { EndDialog } from '../../shell/EndDialog.tsx';
 import { HallOfFame, NewHighScore } from '../../shell/HallOfFame.tsx';
 import { AboutDialog, RulesDialog } from '../../shell/HelpDialogs.tsx';
-import { cleared, loadScores, placeOf, record, saveScores, tableOf, type HighScores } from '../../shell/highscores.ts';
+import { placeOf, tableOf } from '../../shell/highscores.ts';
+import { useHighScores } from '../../shell/useHighScores.ts';
 import { beep, playEvent, useStartExit } from '../../shell/sound.ts';
 import { Window } from '../../shell/Window.tsx';
 import { Board, type Press } from './Board.tsx';
@@ -34,12 +35,11 @@ export default function BlackBoxChess({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState<State>(() => deal());
   // After Give Up the title loses its score (FUN_00401aae).
   const [gaveUp, setGaveUp] = useState(false);
-  const [scores, setScores] = useState<HighScores>(() => loadScores('bbchess'));
+  const { scores, record: recordScore, clear: clearScores } = useHighScores('bbchess');
   const [open, setOpen] = useState<Open>(null);
   const title = gaveUp ? TITLE : `${TITLE} Score - ${game.score}`;
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => saveScores('bbchess', scores), [scores]);
 
   const sound = (event: SoundEvent) => playEvent(settings, event);
 
@@ -216,7 +216,7 @@ export default function BlackBoxChess({ onExit }: { onExit: () => void }) {
         <HallOfFame
           title="Hall of Fame"
           table={tableOf(scores, 0)}
-          onClear={() => setScores(cleared(scores, 0))}
+          onClear={clearScores && (() => clearScores(0))}
           onClose={() => setOpen(null)}
         />
       )}
@@ -225,7 +225,7 @@ export default function BlackBoxChess({ onExit }: { onExit: () => void }) {
         <NewHighScore
           name={scores.player}
           onOk={(name) => {
-            setScores(record(scores, 0, open.place, name, open.highScore));
+            recordScore(0, open.place, name, open.highScore);
             setOpen(null);
           }}
         />
