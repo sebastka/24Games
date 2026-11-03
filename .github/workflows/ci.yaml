@@ -22,7 +22,7 @@ jobs:
     # MariaDB for the high score store's integration tests (test/server-store.test.ts).
     services:
       mariadb:
-        image: mariadb:11.4
+        image: mariadb:11.8
         env:
           MARIADB_ROOT_PASSWORD: ci-root
         ports: ['3306:3306']
