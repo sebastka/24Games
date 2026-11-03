@@ -5,7 +5,7 @@
 ---
 services:
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:11.8
     restart: unless-stopped
     environment:
       MARIADB_DATABASE: 24games
