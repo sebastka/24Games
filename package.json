@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.6",
-    "hono": "^4.13.16",
+    "hono": "^4.13.17",
     "mariadb": "^3.5.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
@@ -36,7 +36,7 @@
     "@types/react-dom": "^19.3.0",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.2.1",
-    "concurrently": "^10.0.6",
+    "concurrently": "^10.0.7",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
