@@ -23,8 +23,8 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.6",
-    "hono": "^4.13.17",
+    "@hono/node-server": "^2.1.7",
+    "hono": "^4.13.18",
     "mariadb": "^3.5.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
@@ -42,12 +42,12 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.14.0",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8"
   },
   "overrides": {
-    "minimatch": "11.0.7"
+    "minimatch": "11.0.8"
   }
 }
