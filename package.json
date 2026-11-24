@@ -23,7 +23,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.9",
+    "@hono/node-server": "^2.1.11",
     "hono": "^4.13.19",
     "mariadb": "^3.5.5",
     "react": "^19.3.1",
