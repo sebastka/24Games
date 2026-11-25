@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.11",
-    "hono": "^4.13.19",
+    "hono": "^4.13.20",
     "mariadb": "^3.5.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
